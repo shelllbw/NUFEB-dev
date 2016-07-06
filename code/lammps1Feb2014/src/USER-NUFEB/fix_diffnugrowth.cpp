@@ -139,6 +139,40 @@ void FixDiffNuGrowth::init()
             error->all(FLERR,"Variable for fix nugrowth is invalid style");
     }
     
+    // Initialise constants from config file
+    KsHET = input->variable->compute_equal(ivar[0]);
+    Ko2HET = input->variable->compute_equal(ivar[1]);
+    Kno2HET = input->variable->compute_equal(ivar[2]);
+    Kno3HET = input->variable->compute_equal(ivar[3]);
+    Knh4AOB = input->variable->compute_equal(ivar[4]);
+    Ko2AOB = input->variable->compute_equal(ivar[5]);
+    Kno2NOB = input->variable->compute_equal(ivar[6]);
+    Ko2NOB = input->variable->compute_equal(ivar[7]);
+    MumHET = input->variable->compute_equal(ivar[8]);
+    MumAOB = input->variable->compute_equal(ivar[9]);
+    MumNOB = input->variable->compute_equal(ivar[10]);
+    etaHET = input->variable->compute_equal(ivar[11]);
+    bHET = input->variable->compute_equal(ivar[12]); // R6
+    bAOB = input->variable->compute_equal(ivar[13]); // R7
+    bNOB = input->variable->compute_equal(ivar[14]); // R8
+    bEPS = input->variable->compute_equal(ivar[15]); // R9
+    bmHET = input->variable->compute_equal(ivar[16]);
+    bmAOB = input->variable->compute_equal(ivar[17]);
+    bmNOB =input->variable->compute_equal(ivar[18]);
+    bX =input->variable->compute_equal(ivar[19]);
+    YHET = input->variable->compute_equal(ivar[20]);
+    YAOB = input->variable->compute_equal(ivar[21]);
+    YNOB = input->variable->compute_equal(ivar[22]);
+    YEPS = input->variable->compute_equal(ivar[23]);
+    Y1 = input->variable->compute_equal(ivar[24]);
+    EPSdens = input->variable->compute_equal(ivar[25]);
+    Do2 = input->variable->compute_equal(ivar[26]);
+    Dnh4 = input->variable->compute_equal(ivar[27]);
+    Dno2 = input->variable->compute_equal(ivar[28]);
+    Dno3 = input->variable->compute_equal(ivar[29]);
+    Ds = input->variable->compute_equal(ivar[30]);
+    diffT = input->variable->compute_equal(ivar[31]);
+    
     //initial concentrations of non-ghost cells
     initsub = input->variable->compute_equal(ivar[32]);
     inito2 = input->variable->compute_equal(ivar[33]);
@@ -230,38 +264,38 @@ void FixDiffNuGrowth::change_dia()
 {
     modify->clearstep_compute();
     
-    double KsHET = input->variable->compute_equal(ivar[0]);
-    double Ko2HET = input->variable->compute_equal(ivar[1]);
-    double Kno2HET = input->variable->compute_equal(ivar[2]);
-    double Kno3HET = input->variable->compute_equal(ivar[3]);
-    double Knh4AOB = input->variable->compute_equal(ivar[4]);
-    double Ko2AOB = input->variable->compute_equal(ivar[5]);
-    double Kno2NOB = input->variable->compute_equal(ivar[6]);
-    double Ko2NOB = input->variable->compute_equal(ivar[7]);
-    double MumHET = input->variable->compute_equal(ivar[8]);
-    double MumAOB = input->variable->compute_equal(ivar[9]);
-    double MumNOB = input->variable->compute_equal(ivar[10]);
-    double etaHET = input->variable->compute_equal(ivar[11]);
-    double bHET = input->variable->compute_equal(ivar[12]); // R6
-    double bAOB = input->variable->compute_equal(ivar[13]); // R7
-    double bNOB = input->variable->compute_equal(ivar[14]); // R8
-    double bEPS = input->variable->compute_equal(ivar[15]); // R9
-    double bmHET = input->variable->compute_equal(ivar[16]);
-    double bmAOB = input->variable->compute_equal(ivar[17]);
-    double bmNOB =input->variable->compute_equal(ivar[18]);
-    double bX =input->variable->compute_equal(ivar[19]);
-    double YHET = input->variable->compute_equal(ivar[20]);
-    double YAOB = input->variable->compute_equal(ivar[21]);
-    double YNOB = input->variable->compute_equal(ivar[22]);
-    double YEPS = input->variable->compute_equal(ivar[23]);
-    double Y1 = input->variable->compute_equal(ivar[24]);
-    double EPSdens = input->variable->compute_equal(ivar[25]);
-    double Do2 = input->variable->compute_equal(ivar[26]);
-    double Dnh4 = input->variable->compute_equal(ivar[27]);
-    double Dno2 = input->variable->compute_equal(ivar[28]);
-    double Dno3 = input->variable->compute_equal(ivar[29]);
-    double Ds = input->variable->compute_equal(ivar[30]);
-    double diffT = input->variable->compute_equal(ivar[31]);
+    //double KsHET = input->variable->compute_equal(ivar[0]);
+    //double Ko2HET = input->variable->compute_equal(ivar[1]);
+//    double Kno2HET = input->variable->compute_equal(ivar[2]);
+//    double Kno3HET = input->variable->compute_equal(ivar[3]);
+//    double Knh4AOB = input->variable->compute_equal(ivar[4]);
+//    double Ko2AOB = input->variable->compute_equal(ivar[5]);
+//    double Kno2NOB = input->variable->compute_equal(ivar[6]);
+//    double Ko2NOB = input->variable->compute_equal(ivar[7]);
+//    double MumHET = input->variable->compute_equal(ivar[8]);
+//    double MumAOB = input->variable->compute_equal(ivar[9]);
+//    double MumNOB = input->variable->compute_equal(ivar[10]);
+//    double etaHET = input->variable->compute_equal(ivar[11]);
+//    double bHET = input->variable->compute_equal(ivar[12]); // R6
+//    double bAOB = input->variable->compute_equal(ivar[13]); // R7
+//    double bNOB = input->variable->compute_equal(ivar[14]); // R8
+//    double bEPS = input->variable->compute_equal(ivar[15]); // R9
+//    double bmHET = input->variable->compute_equal(ivar[16]);
+//    double bmAOB = input->variable->compute_equal(ivar[17]);
+//    double bmNOB =input->variable->compute_equal(ivar[18]);
+//    double bX =input->variable->compute_equal(ivar[19]);
+//    double YHET = input->variable->compute_equal(ivar[20]);
+//    double YAOB = input->variable->compute_equal(ivar[21]);
+//    double YNOB = input->variable->compute_equal(ivar[22]);
+//    double YEPS = input->variable->compute_equal(ivar[23]);
+//    double Y1 = input->variable->compute_equal(ivar[24]);
+//    double EPSdens = input->variable->compute_equal(ivar[25]);
+//    double Do2 = input->variable->compute_equal(ivar[26]);
+//    double Dnh4 = input->variable->compute_equal(ivar[27]);
+//    double Dno2 = input->variable->compute_equal(ivar[28]);
+//    double Dno3 = input->variable->compute_equal(ivar[29]);
+//    double Ds = input->variable->compute_equal(ivar[30]);
+//    double diffT = input->variable->compute_equal(ivar[31]);
     
     double density;
     
@@ -564,6 +598,7 @@ void FixDiffNuGrowth::change_dia()
                 o2Cell[cell] = o2CellCurrent[cell];
                 no2Cell[cell] = no2CellCurrent[cell];
                 no3Cell[cell] = no3CellCurrent[cell];
+                nh4Cell[cell] = nh4CellCurrent[cell];
             }
         }
         
