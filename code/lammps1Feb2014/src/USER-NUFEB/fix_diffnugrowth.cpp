@@ -262,40 +262,9 @@ void FixDiffNuGrowth::pre_force(int vflag)
 
 void FixDiffNuGrowth::change_dia()
 {
-    modify->clearstep_compute();
+    clock_t t0 = clock();
     
-    //double KsHET = input->variable->compute_equal(ivar[0]);
-    //double Ko2HET = input->variable->compute_equal(ivar[1]);
-//    double Kno2HET = input->variable->compute_equal(ivar[2]);
-//    double Kno3HET = input->variable->compute_equal(ivar[3]);
-//    double Knh4AOB = input->variable->compute_equal(ivar[4]);
-//    double Ko2AOB = input->variable->compute_equal(ivar[5]);
-//    double Kno2NOB = input->variable->compute_equal(ivar[6]);
-//    double Ko2NOB = input->variable->compute_equal(ivar[7]);
-//    double MumHET = input->variable->compute_equal(ivar[8]);
-//    double MumAOB = input->variable->compute_equal(ivar[9]);
-//    double MumNOB = input->variable->compute_equal(ivar[10]);
-//    double etaHET = input->variable->compute_equal(ivar[11]);
-//    double bHET = input->variable->compute_equal(ivar[12]); // R6
-//    double bAOB = input->variable->compute_equal(ivar[13]); // R7
-//    double bNOB = input->variable->compute_equal(ivar[14]); // R8
-//    double bEPS = input->variable->compute_equal(ivar[15]); // R9
-//    double bmHET = input->variable->compute_equal(ivar[16]);
-//    double bmAOB = input->variable->compute_equal(ivar[17]);
-//    double bmNOB =input->variable->compute_equal(ivar[18]);
-//    double bX =input->variable->compute_equal(ivar[19]);
-//    double YHET = input->variable->compute_equal(ivar[20]);
-//    double YAOB = input->variable->compute_equal(ivar[21]);
-//    double YNOB = input->variable->compute_equal(ivar[22]);
-//    double YEPS = input->variable->compute_equal(ivar[23]);
-//    double Y1 = input->variable->compute_equal(ivar[24]);
-//    double EPSdens = input->variable->compute_equal(ivar[25]);
-//    double Do2 = input->variable->compute_equal(ivar[26]);
-//    double Dnh4 = input->variable->compute_equal(ivar[27]);
-//    double Dno2 = input->variable->compute_equal(ivar[28]);
-//    double Dno3 = input->variable->compute_equal(ivar[29]);
-//    double Ds = input->variable->compute_equal(ivar[30]);
-//    double diffT = input->variable->compute_equal(ivar[31]);
+    modify->clearstep_compute();
     
     double density;
     
@@ -322,15 +291,6 @@ void FixDiffNuGrowth::change_dia()
     double* xEPS = new double[numCells]();
     double* xDEAD = new double[numCells]();
     double* xTot = new double[numCells]();
-    
-    /*for (int cell = 0; cell < numCells; cell++) {
-        //xHET[cell] = 0.0;
-        xAOB[cell] = 0.0;
-        xNOB[cell] = 0.0;
-        xEPS[cell] = 0.0;
-        xDEAD[cell] = 0.0;
-        xTot[cell] = 0.0;
-    }*/
     
     //Growth
     double* R1 = new double[numCells];
@@ -362,6 +322,8 @@ void FixDiffNuGrowth::change_dia()
     double* cellDno3  = new double[numCells];
     double* cellDs  = new double[numCells];
     
+    
+    clock_t t1 = clock();
     //AtomVec *avec = atom->avec;
     int grid = 0;
     // Figure out which cell each particle is in
@@ -373,46 +335,44 @@ void FixDiffNuGrowth::change_dia()
             double gNOB = 0;
             double gEPS = 0;
             double gDEAD = 0;
-            if (type[i] == 1) {
-                gHET = 1;
-            }
-            if (type[i] == 2) {
-                gAOB = 1;
-            }
-            if (type[i] == 3) {
-                gNOB = 1;
-            }
-            if (type[i] == 4) {
-                gEPS = 1;
-            }
-            if (type[i] == 6) {
-                gDEAD = 1;
+            switch (type[i]) {
+                case 1:
+                    gHET = 1;
+                    break;
+                case 2:
+                    gAOB = 1;
+                    break;
+                case 3:
+                    gNOB = 1;
+                    break;
+                case 4:
+                    gEPS = 1;
+                    break;
+                case 6:
+                    gDEAD = 1;
             }
             
-            bool allocate = false;
-            for (int j = 0; j < numCells; j ++) {
-                if ((xCell[j] - xstep/2) <= atom->x[i][0] &&
-                    (xCell[j] + xstep/2) >= atom->x[i][0] &&
-                    (yCell[j] - ystep/2) <= atom->x[i][1] &&
-                    (yCell[j] + ystep/2) >= atom->x[i][1] &&
-                    (zCell[j] - zstep/2) <= atom->x[i][2] &&
-                    (zCell[j] + zstep/2) >= atom->x[i][2]) {
-                    cellIn[i] = j;
-                    xHET[j] += (gHET * rmass[i])/cellVol[j];
-                    xAOB[j] += (gAOB * rmass[i])/cellVol[j];
-                    //  xNOB[j] += rmass[i]/cellVol[j];
-                    xNOB[j] += (gNOB *rmass[i])/cellVol[j];
-                    xEPS[j] += (gEPS * rmass[i])/cellVol[j];
-                    xDEAD[j] += (gDEAD * rmass[i])/cellVol[j];
-                    xTot[j] += rmass[i]/cellVol[j];
-                    allocate = true;
-                    break;
-                }
+            int xpos = (atom->x[i][0] - xlo) / xstep + 1;
+            int ypos = (atom->x[i][1] - ylo) / ystep + 1;
+            int zpos = (atom->x[i][2] - zlo) / zstep + 1;
+            int pos = (xpos * (nx+2) + ypos) * (ny+2) + zpos;
+            
+            if (pos >= numCells) {
+                printf("Too big! pos=%d   size = %lu\n", pos, sizeof(xHET));
             }
-            if(!allocate)
-                error->all(FLERR,"Fail to allocate grid.");
+            cellIn[i] = pos;
+            double rmassCellVol = rmass[i]/cellVol[pos];
+            xHET[pos] += gHET * rmassCellVol;
+            xAOB[pos] += gAOB * rmassCellVol;
+            //  xNOB[j] += rmass[i]/cellVol[j];
+            xNOB[pos] += gNOB *rmassCellVol;
+            xEPS[pos] += gEPS * rmassCellVol;
+            xDEAD[pos] += gDEAD * rmassCellVol;
+            xTot[pos] += rmassCellVol;
         }
     }
+    
+    clock_t t2 = clock();
     
     //initialize values
     for (int cell = 0; cell < numCells; cell++) {
@@ -461,6 +421,9 @@ void FixDiffNuGrowth::change_dia()
             cellDs[cell] = diffusionFunction * Ds;
         }
     }
+    
+    clock_t t3 = clock();
+    
     if(!(update->ntimestep % diffevery)) {
         
         double* subPrev  = new double[numCells];
@@ -505,11 +468,11 @@ void FixDiffNuGrowth::change_dia()
             iteration ++;
             
             //for (int cell = 0; cell < numCells; cell++) {
-                //sub Prev[cell] = sub Cell[cell];
-                //o2 Prev[cell] = o2 Cell[cell];
-                //nh4Prev[cell] = nh4Cell[cell];
-                //no2Prev[cell] = no2Cell[cell];
-                //no3 Prev[cell] = no3 Cell[cell];
+            //sub Prev[cell] = sub Cell[cell];
+            //o2 Prev[cell] = o2 Cell[cell];
+            //nh4Prev[cell] = nh4Cell[cell];
+            //no2Prev[cell] = no2Cell[cell];
+            //no3 Prev[cell] = no3 Cell[cell];
             //}
             
             // Swap subCellCurrent to point at the other one
@@ -588,7 +551,7 @@ void FixDiffNuGrowth::change_dia()
             }
         }
         
-        fprintf(stdout, "Number of iterations:  %i [%d]\n", iteration, numCells);
+        fprintf(stdout, "Number of iterations:  %i {%d}\n", iteration, numCells);
         
         
         // Fix the two copies of subCell so that subCell contains the value
@@ -608,6 +571,8 @@ void FixDiffNuGrowth::change_dia()
         delete [] no2Prev;
         delete [] no3Prev;
     }
+    
+    clock_t t4 = clock();
     
     for (i = 0; i < nall; i++) {
         if (mask[i] & groupbit) {
@@ -662,6 +627,8 @@ void FixDiffNuGrowth::change_dia()
         }
     }
     
+    clock_t t5 = clock();
+    
     //output data
     if(!(update->ntimestep % outputevery)){
         output_data(outputevery,1);
@@ -709,6 +676,15 @@ void FixDiffNuGrowth::change_dia()
     delete [] cellDno2;
     delete [] cellDno3;
     delete [] cellDs;
+    
+    clock_t t6 = clock();
+    double t01 = (double) (t1-t0) / CLOCKS_PER_SEC * 1000.0;
+    double t12 = (double) (t2-t1) / CLOCKS_PER_SEC * 1000.0;
+    double t23 = (double) (t3-t2) / CLOCKS_PER_SEC * 1000.0;
+    double t34 = (double) (t4-t3) / CLOCKS_PER_SEC * 1000.0;
+    double t45 = (double) (t5-t4) / CLOCKS_PER_SEC * 1000.0;
+    double t56 = (double) (t6-t5) / CLOCKS_PER_SEC * 1000.0;
+    //fprintf(stdout, "t01 = %f  t12 = %f  t23 = %f  t34 = %f  t45 = %f   t56 = %f\n", t01, t12, t23, t34, t45, t56);
 }
 
 bool FixDiffNuGrowth::is_convergence(double *nuCell, double *prevNuCell, double nuBC, double tol) {
@@ -879,7 +855,7 @@ void FixDiffNuGrowth::output_data(int every, int n){
         if(n == 6){
             pFile = fopen (str.c_str(), "a");
             if(update->ntimestep == every) fprintf(pFile, "time \t sumRs \t sumRo2 \t sumRno2 \t sumRno3 \t sumRnh4 \n");
-            fprintf(pFile, "%i,\t%e,\t%e,\t%e,\t%e,\t%e\n",update->ntimestep, sumRs, sumRo2, sumRno2, sumRno3, sumRnh4);
+            fprintf(pFile, "%lli,\t%e,\t%e,\t%e,\t%e,\t%e\n",update->ntimestep, sumRs, sumRo2, sumRno2, sumRno3, sumRnh4);
         }else{
             pFile = fopen (str.c_str(), "w");
             fprintf(pFile, ",x,y,z,scalar,1,1,1,0.5\n");

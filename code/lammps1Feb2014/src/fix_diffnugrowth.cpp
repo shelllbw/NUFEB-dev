@@ -139,6 +139,40 @@ void FixDiffNuGrowth::init()
             error->all(FLERR,"Variable for fix nugrowth is invalid style");
     }
     
+    // Initialise constants from config file
+    KsHET = input->variable->compute_equal(ivar[0]);
+    Ko2HET = input->variable->compute_equal(ivar[1]);
+    Kno2HET = input->variable->compute_equal(ivar[2]);
+    Kno3HET = input->variable->compute_equal(ivar[3]);
+    Knh4AOB = input->variable->compute_equal(ivar[4]);
+    Ko2AOB = input->variable->compute_equal(ivar[5]);
+    Kno2NOB = input->variable->compute_equal(ivar[6]);
+    Ko2NOB = input->variable->compute_equal(ivar[7]);
+    MumHET = input->variable->compute_equal(ivar[8]);
+    MumAOB = input->variable->compute_equal(ivar[9]);
+    MumNOB = input->variable->compute_equal(ivar[10]);
+    etaHET = input->variable->compute_equal(ivar[11]);
+    bHET = input->variable->compute_equal(ivar[12]); // R6
+    bAOB = input->variable->compute_equal(ivar[13]); // R7
+    bNOB = input->variable->compute_equal(ivar[14]); // R8
+    bEPS = input->variable->compute_equal(ivar[15]); // R9
+    bmHET = input->variable->compute_equal(ivar[16]);
+    bmAOB = input->variable->compute_equal(ivar[17]);
+    bmNOB =input->variable->compute_equal(ivar[18]);
+    bX =input->variable->compute_equal(ivar[19]);
+    YHET = input->variable->compute_equal(ivar[20]);
+    YAOB = input->variable->compute_equal(ivar[21]);
+    YNOB = input->variable->compute_equal(ivar[22]);
+    YEPS = input->variable->compute_equal(ivar[23]);
+    Y1 = input->variable->compute_equal(ivar[24]);
+    EPSdens = input->variable->compute_equal(ivar[25]);
+    Do2 = input->variable->compute_equal(ivar[26]);
+    Dnh4 = input->variable->compute_equal(ivar[27]);
+    Dno2 = input->variable->compute_equal(ivar[28]);
+    Dno3 = input->variable->compute_equal(ivar[29]);
+    Ds = input->variable->compute_equal(ivar[30]);
+    diffT = input->variable->compute_equal(ivar[31]);
+    
     //initial concentrations of non-ghost cells
     initsub = input->variable->compute_equal(ivar[32]);
     inito2 = input->variable->compute_equal(ivar[33]);
@@ -228,40 +262,9 @@ void FixDiffNuGrowth::pre_force(int vflag)
 
 void FixDiffNuGrowth::change_dia()
 {
-    modify->clearstep_compute();
+    clock_t t0 = clock();
     
-    double KsHET = input->variable->compute_equal(ivar[0]);
-    double Ko2HET = input->variable->compute_equal(ivar[1]);
-    double Kno2HET = input->variable->compute_equal(ivar[2]);
-    double Kno3HET = input->variable->compute_equal(ivar[3]);
-    double Knh4AOB = input->variable->compute_equal(ivar[4]);
-    double Ko2AOB = input->variable->compute_equal(ivar[5]);
-    double Kno2NOB = input->variable->compute_equal(ivar[6]);
-    double Ko2NOB = input->variable->compute_equal(ivar[7]);
-    double MumHET = input->variable->compute_equal(ivar[8]);
-    double MumAOB = input->variable->compute_equal(ivar[9]);
-    double MumNOB = input->variable->compute_equal(ivar[10]);
-    double etaHET = input->variable->compute_equal(ivar[11]);
-    double bHET = input->variable->compute_equal(ivar[12]); // R6
-    double bAOB = input->variable->compute_equal(ivar[13]); // R7
-    double bNOB = input->variable->compute_equal(ivar[14]); // R8
-    double bEPS = input->variable->compute_equal(ivar[15]); // R9
-    double bmHET = input->variable->compute_equal(ivar[16]);
-    double bmAOB = input->variable->compute_equal(ivar[17]);
-    double bmNOB =input->variable->compute_equal(ivar[18]);
-    double bX =input->variable->compute_equal(ivar[19]);
-    double YHET = input->variable->compute_equal(ivar[20]);
-    double YAOB = input->variable->compute_equal(ivar[21]);
-    double YNOB = input->variable->compute_equal(ivar[22]);
-    double YEPS = input->variable->compute_equal(ivar[23]);
-    double Y1 = input->variable->compute_equal(ivar[24]);
-    double EPSdens = input->variable->compute_equal(ivar[25]);
-    double Do2 = input->variable->compute_equal(ivar[26]);
-    double Dnh4 = input->variable->compute_equal(ivar[27]);
-    double Dno2 = input->variable->compute_equal(ivar[28]);
-    double Dno3 = input->variable->compute_equal(ivar[29]);
-    double Ds = input->variable->compute_equal(ivar[30]);
-    double diffT = input->variable->compute_equal(ivar[31]);
+    modify->clearstep_compute();
     
     double density;
     
@@ -283,20 +286,11 @@ void FixDiffNuGrowth::change_dia()
     int* cellIn = new int[nall];
     // By using double[numCells]() this calls the constructor and ensures values are zero
     double* xHET = new double[numCells]();
-    double* xAOB = new double[numCells];
-    double* xNOB = new double[numCells];
-    double* xEPS = new double[numCells];
-    double* xDEAD = new double[numCells];
-    double* xTot = new double[numCells];
-    
-    for (int cell = 0; cell < numCells; cell++) {
-        //xHET[cell] = 0.0;
-        xAOB[cell] = 0.0;
-        xNOB[cell] = 0.0;
-        xEPS[cell] = 0.0;
-        xDEAD[cell] = 0.0;
-        xTot[cell] = 0.0;
-    }
+    double* xAOB = new double[numCells]();
+    double* xNOB = new double[numCells]();
+    double* xEPS = new double[numCells]();
+    double* xDEAD = new double[numCells]();
+    double* xTot = new double[numCells]();
     
     //Growth
     double* R1 = new double[numCells];
@@ -328,6 +322,8 @@ void FixDiffNuGrowth::change_dia()
     double* cellDno3  = new double[numCells];
     double* cellDs  = new double[numCells];
     
+    
+    clock_t t1 = clock();
     //AtomVec *avec = atom->avec;
     int grid = 0;
     // Figure out which cell each particle is in
@@ -339,46 +335,44 @@ void FixDiffNuGrowth::change_dia()
             double gNOB = 0;
             double gEPS = 0;
             double gDEAD = 0;
-            if (type[i] == 1) {
-                gHET = 1;
-            }
-            if (type[i] == 2) {
-                gAOB = 1;
-            }
-            if (type[i] == 3) {
-                gNOB = 1;
-            }
-            if (type[i] == 4) {
-                gEPS = 1;
-            }
-            if (type[i] == 6) {
-                gDEAD = 1;
+            switch (type[i]) {
+                case 1:
+                    gHET = 1;
+                    break;
+                case 2:
+                    gAOB = 1;
+                    break;
+                case 3:
+                    gNOB = 1;
+                    break;
+                case 4:
+                    gEPS = 1;
+                    break;
+                case 6:
+                    gDEAD = 1;
             }
             
-            bool allocate = false;
-            for (int j = 0; j < numCells; j ++) {
-                if ((xCell[j] - xstep/2) <= atom->x[i][0] &&
-                    (xCell[j] + xstep/2) >= atom->x[i][0] &&
-                    (yCell[j] - ystep/2) <= atom->x[i][1] &&
-                    (yCell[j] + ystep/2) >= atom->x[i][1] &&
-                    (zCell[j] - zstep/2) <= atom->x[i][2] &&
-                    (zCell[j] + zstep/2) >= atom->x[i][2]) {
-                    cellIn[i] = j;
-                    xHET[j] += (gHET * rmass[i])/cellVol[j];
-                    xAOB[j] += (gAOB * rmass[i])/cellVol[j];
-                    //  xNOB[j] += rmass[i]/cellVol[j];
-                    xNOB[j] += (gNOB *rmass[i])/cellVol[j];
-                    xEPS[j] += (gEPS * rmass[i])/cellVol[j];
-                    xDEAD[j] += (gDEAD * rmass[i])/cellVol[j];
-                    xTot[j] += rmass[i]/cellVol[j];
-                    allocate = true;
-                    break;
-                }
+            int xpos = (atom->x[i][0] - xlo) / xstep + 1;
+            int ypos = (atom->x[i][1] - ylo) / ystep + 1;
+            int zpos = (atom->x[i][2] - zlo) / zstep + 1;
+            int pos = (xpos * (nx+2) + ypos) * (ny+2) + zpos;
+            
+            if (pos >= numCells) {
+                printf("Too big! pos=%d   size = %lu\n", pos, sizeof(xHET));
             }
-            if(!allocate)
-                error->all(FLERR,"Fail to allocate grid.");
+            cellIn[i] = pos;
+            double rmassCellVol = rmass[i]/cellVol[pos];
+            xHET[pos] += gHET * rmassCellVol;
+            xAOB[pos] += gAOB * rmassCellVol;
+            //  xNOB[j] += rmass[i]/cellVol[j];
+            xNOB[pos] += gNOB *rmassCellVol;
+            xEPS[pos] += gEPS * rmassCellVol;
+            xDEAD[pos] += gDEAD * rmassCellVol;
+            xTot[pos] += rmassCellVol;
         }
     }
+    
+    clock_t t2 = clock();
     
     //initialize values
     for (int cell = 0; cell < numCells; cell++) {
@@ -427,13 +421,26 @@ void FixDiffNuGrowth::change_dia()
             cellDs[cell] = diffusionFunction * Ds;
         }
     }
+    
+    clock_t t3 = clock();
+    
     if(!(update->ntimestep % diffevery)) {
         
         double* subPrev  = new double[numCells];
+        double* subCellCurrent = subCell;
+        double* subCellLast = subPrev;
         double* o2Prev  = new double[numCells];
+        double* o2CellCurrent = o2Cell;
+        double* o2CellLast = o2Prev;
         double* no2Prev  = new double[numCells];
+        double* no2CellCurrent = no2Cell;
+        double* no2CellLast = no2Prev;
         double* no3Prev  = new double[numCells];
+        double* no3CellCurrent = no3Cell;
+        double* no3CellLast = no3Prev;
         double* nh4Prev  = new double[numCells];
+        double* nh4CellCurrent = nh4Cell;
+        double* nh4CellLast = nh4Prev;
         
         bool subConvergence = false;
         bool o2Convergence = false;
@@ -443,6 +450,15 @@ void FixDiffNuGrowth::change_dia()
         
         bool convergence = false;
         
+        // Copy onece only current to last:
+        for (int cell = 0; cell < numCells; cell++) {
+            subCellLast[cell] = subCellCurrent[cell];
+            o2CellLast[cell] = o2CellCurrent[cell];
+            no2CellLast[cell] = no2CellCurrent[cell];
+            no3CellLast[cell] = no3CellCurrent[cell];
+            nh4CellLast[cell] = nh4CellCurrent[cell];
+        }
+        
         int iteration = 0;
         
         double tol = 1e-6; // Tolerance for convergence criteria for nutrient balance equation
@@ -451,26 +467,60 @@ void FixDiffNuGrowth::change_dia()
         while (!convergence) {
             iteration ++;
             
-            for (int cell = 0; cell < numCells; cell++) {
-                subPrev[cell] = subCell[cell];
-                o2Prev[cell] = o2Cell[cell];
-                nh4Prev[cell] = nh4Cell[cell];
-                no2Prev[cell] = no2Cell[cell];
-                no3Prev[cell] = no3Cell[cell];
+            //for (int cell = 0; cell < numCells; cell++) {
+            //sub Prev[cell] = sub Cell[cell];
+            //o2 Prev[cell] = o2 Cell[cell];
+            //nh4Prev[cell] = nh4Cell[cell];
+            //no2Prev[cell] = no2Cell[cell];
+            //no3 Prev[cell] = no3 Cell[cell];
+            //}
+            
+            // Swap subCellCurrent to point at the other one
+            if (subCellCurrent == subCell) {
+                subCellCurrent = subPrev;
+                subCellLast = subCell;
+                
+                o2CellCurrent = o2Prev;
+                o2CellLast = o2Cell;
+                
+                no2CellCurrent = no2Prev;
+                no2CellLast = no2Cell;
+                
+                no3CellCurrent = no3Prev;
+                no3CellLast = no3Cell;
+                
+                nh4CellCurrent = nh4Prev;
+                nh4CellLast = nh4Cell;
+            }
+            else {
+                subCellCurrent = subCell;
+                subCellLast = subPrev;
+                
+                o2CellCurrent = o2Cell;
+                o2CellLast = o2Prev;
+                
+                no2CellCurrent = no2Cell;
+                no2CellLast = no2Prev;
+                
+                no3CellCurrent = no3Cell;
+                no3CellLast = no3Prev;
+                
+                nh4CellCurrent = nh4Cell;
+                nh4CellLast = nh4Prev;
             }
             
             for (int cell = 0; cell < numCells; cell++) {
-                R1[cell] = MumHET*(subPrev[cell]/(KsHET+subPrev[cell]))*(o2Prev[cell]/(Ko2HET+o2Prev[cell]));
-                R2[cell] = MumAOB*(nh4Prev[cell]/(Knh4AOB+nh4Prev[cell]))*(o2Prev[cell]/(Ko2AOB+o2Prev[cell]));
-                R3[cell] = MumNOB*(no2Prev[cell]/(Kno2NOB+no2Prev[cell]))*(o2Prev[cell]/(Ko2NOB+o2Prev[cell]));
-                R4[cell] = etaHET*MumHET*(subPrev[cell]/(KsHET+subPrev[cell]))*(no3Prev[cell]/(Kno3HET+no3Prev[cell]))*(Ko2HET/(Ko2HET+o2Prev[cell]));
-                R5[cell] = etaHET*MumHET*(subPrev[cell]/(KsHET+subPrev[cell]))*(no2Prev[cell]/(Kno2HET+no2Prev[cell]))*(Ko2HET/(Ko2HET+o2Prev[cell]));
+                R1[cell] = MumHET*(subCellLast[cell]/(KsHET+subCellLast[cell]))*(o2CellLast[cell]/(Ko2HET+o2CellLast[cell]));
+                R2[cell] = MumAOB*(nh4CellLast[cell]/(Knh4AOB+nh4CellLast[cell]))*(o2CellLast[cell]/(Ko2AOB+o2CellLast[cell]));
+                R3[cell] = MumNOB*(no2CellLast[cell]/(Kno2NOB+no2CellLast[cell]))*(o2CellLast[cell]/(Ko2NOB+o2CellLast[cell]));
+                R4[cell] = etaHET*MumHET*(subCellLast[cell]/(KsHET+subCellLast[cell]))*(no3CellLast[cell]/(Kno3HET+no3CellLast[cell]))*(Ko2HET/(Ko2HET+o2CellLast[cell]));
+                R5[cell] = etaHET*MumHET*(subCellLast[cell]/(KsHET+subCellLast[cell]))*(no2CellLast[cell]/(Kno2HET+no2CellLast[cell]))*(Ko2HET/(Ko2HET+o2CellLast[cell]));
                 //Decay and maintenance
-                R10[cell] = bmHET*(o2Prev[cell]/(Ko2HET+o2Prev[cell]));
-                R11[cell] = bmAOB*(o2Prev[cell]/(Ko2AOB+o2Prev[cell]));
-                R12[cell] = bmNOB*(o2Prev[cell]/(Ko2NOB+o2Prev[cell]));
-                R13[cell] = (1/2.86)*bmHET*etaHET*(no3Prev[cell]/(Kno3HET+no3Prev[cell]))*(Ko2HET/(Ko2HET+o2Prev[cell]));
-                R14[cell] = (1/1.71)*bmHET*etaHET*(no2Prev[cell]/(Kno2HET+no2Prev[cell]))*(Ko2HET/(Ko2HET+o2Prev[cell]));
+                R10[cell] = bmHET*(o2CellLast[cell]/(Ko2HET+o2CellLast[cell]));
+                R11[cell] = bmAOB*(o2CellLast[cell]/(Ko2AOB+o2CellLast[cell]));
+                R12[cell] = bmNOB*(o2CellLast[cell]/(Ko2NOB+o2CellLast[cell]));
+                R13[cell] = (1/2.86)*bmHET*etaHET*(no3CellLast[cell]/(Kno3HET+no3CellLast[cell]))*(Ko2HET/(Ko2HET+o2CellLast[cell]));
+                R14[cell] = (1/1.71)*bmHET*etaHET*(no2CellLast[cell]/(Kno2HET+no2CellLast[cell]))*(Ko2HET/(Ko2HET+o2CellLast[cell]));
                 
                 Rs[cell] = ( (-1/YHET) * ( (R1[cell]+R4[cell]+R5[cell]) * xHET[cell] ) ) + R6[cell]*xHET[cell] + R7[cell]*xAOB[cell] + R8[cell]*xNOB[cell] + R9[cell]*xEPS[cell];
                 Ro2[cell] = (-((1-YHET-YEPS)/YHET)*R1[cell]*xHET[cell])-(((3.42-YAOB)/YAOB)*R2[cell]*xAOB[cell])-(((1.15-YNOB)/YNOB)*R3[cell]*xNOB[cell]);
@@ -483,25 +533,37 @@ void FixDiffNuGrowth::change_dia()
                 Rno2[cell] = Rno2[cell] - (R14[cell] * xHET[cell]);
                 Rno3[cell] = Rno3[cell] -(R13[cell] * xHET[cell]);
                 
-                if(!subConvergence) compute_flux(cellDs, subCell, subPrev, subBC, Rs[cell], diffT, cell);
-                if(!o2Convergence) compute_flux(cellDo2, o2Cell, o2Prev, o2BC, Ro2[cell], diffT, cell);
-                if(!nh4Convergence) compute_flux(cellDnh4, nh4Cell, nh4Prev, nh4BC, Rnh4[cell], diffT, cell);
-                if(!no2Convergence) compute_flux(cellDno2, no2Cell, no2Prev, no2BC, Rno2[cell], diffT, cell);
-                if(!no3Convergence) compute_flux(cellDno3, no3Cell, no3Prev, no3BC, Rno3[cell], diffT, cell);
+                if(!subConvergence) compute_flux(cellDs, subCellCurrent, subCellLast, subBC, Rs[cell], diffT, cell);
+                if(!o2Convergence) compute_flux(cellDo2, o2CellCurrent, o2CellLast, o2BC, Ro2[cell], diffT, cell);
+                if(!nh4Convergence) compute_flux(cellDnh4, nh4CellCurrent, nh4CellLast, nh4BC, Rnh4[cell], diffT, cell);
+                if(!no2Convergence) compute_flux(cellDno2, no2CellCurrent, no2CellLast, no2BC, Rno2[cell], diffT, cell);
+                if(!no3Convergence) compute_flux(cellDno3, no3CellCurrent, no3CellLast, no3BC, Rno3[cell], diffT, cell);
             }
             
-            if(is_convergence(subCell, subPrev, subBC, tol))	subConvergence = true;
-            if(is_convergence(o2Cell, o2Prev, o2BC, tol))	o2Convergence = true;
-            if(is_convergence(nh4Cell, nh4Prev, nh4BC, tol)) nh4Convergence = true;
-            if(is_convergence(no2Cell, no2Prev, no2BC, tol)) no2Convergence = true;
-            if(is_convergence(no3Cell, no3Prev, no3BC, tol)) no3Convergence = true;
+            if(is_convergence(subCellCurrent, subCellLast, subBC, tol))	subConvergence = true;
+            if(is_convergence(o2CellCurrent, o2CellLast, o2BC, tol))	o2Convergence = true;
+            if(is_convergence(nh4CellCurrent, nh4CellLast, nh4BC, tol)) nh4Convergence = true;
+            if(is_convergence(no2CellCurrent, no2CellLast, no2BC, tol)) no2Convergence = true;
+            if(is_convergence(no3CellCurrent, no3CellLast, no3BC, tol)) no3Convergence = true;
             
             if((subConvergence && o2Convergence && nh4Convergence && no2Convergence && no3Convergence) || iteration == 10000) {
                 convergence = true;
             }
         }
         
-        fprintf(stdout, "Number of iterations:  %i [%d]\n", iteration, numCells);
+        fprintf(stdout, "Number of iterations:  %i {%d}\n", iteration, numCells);
+        
+        
+        // Fix the two copies of subCell so that subCell contains the value
+        if (subCell != subCellCurrent) {
+            for (int cell = 0; cell < numCells; cell++) {
+                subCell[cell] = subCellCurrent[cell];
+                o2Cell[cell] = o2CellCurrent[cell];
+                no2Cell[cell] = no2CellCurrent[cell];
+                no3Cell[cell] = no3CellCurrent[cell];
+                nh4Cell[cell] = nh4CellCurrent[cell];
+            }
+        }
         
         delete [] subPrev;
         delete [] o2Prev;
@@ -509,6 +571,8 @@ void FixDiffNuGrowth::change_dia()
         delete [] no2Prev;
         delete [] no3Prev;
     }
+    
+    clock_t t4 = clock();
     
     for (i = 0; i < nall; i++) {
         if (mask[i] & groupbit) {
@@ -563,6 +627,8 @@ void FixDiffNuGrowth::change_dia()
         }
     }
     
+    clock_t t5 = clock();
+    
     //output data
     if(!(update->ntimestep % outputevery)){
         output_data(outputevery,1);
@@ -610,6 +676,15 @@ void FixDiffNuGrowth::change_dia()
     delete [] cellDno2;
     delete [] cellDno3;
     delete [] cellDs;
+    
+    clock_t t6 = clock();
+    double t01 = (double) (t1-t0) / CLOCKS_PER_SEC * 1000.0;
+    double t12 = (double) (t2-t1) / CLOCKS_PER_SEC * 1000.0;
+    double t23 = (double) (t3-t2) / CLOCKS_PER_SEC * 1000.0;
+    double t34 = (double) (t4-t3) / CLOCKS_PER_SEC * 1000.0;
+    double t45 = (double) (t5-t4) / CLOCKS_PER_SEC * 1000.0;
+    double t56 = (double) (t6-t5) / CLOCKS_PER_SEC * 1000.0;
+    //fprintf(stdout, "t01 = %f  t12 = %f  t23 = %f  t34 = %f  t45 = %f   t56 = %f\n", t01, t12, t23, t34, t45, t56);
 }
 
 bool FixDiffNuGrowth::is_convergence(double *nuCell, double *prevNuCell, double nuBC, double tol) {
@@ -780,7 +855,7 @@ void FixDiffNuGrowth::output_data(int every, int n){
         if(n == 6){
             pFile = fopen (str.c_str(), "a");
             if(update->ntimestep == every) fprintf(pFile, "time \t sumRs \t sumRo2 \t sumRno2 \t sumRno3 \t sumRnh4 \n");
-            fprintf(pFile, "%i,\t%e,\t%e,\t%e,\t%e,\t%e\n",update->ntimestep, sumRs, sumRo2, sumRno2, sumRno3, sumRnh4);
+            fprintf(pFile, "%lli,\t%e,\t%e,\t%e,\t%e,\t%e\n",update->ntimestep, sumRs, sumRo2, sumRno2, sumRno3, sumRnh4);
         }else{
             pFile = fopen (str.c_str(), "w");
             fprintf(pFile, ",x,y,z,scalar,1,1,1,0.5\n");
