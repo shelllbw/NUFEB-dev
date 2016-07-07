@@ -7,12 +7,12 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		g++
-CCFLAGS =	-O -pg 
+CCFLAGS =	-O3 -pg 
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		g++
-LINKFLAGS =	-O -pg
+LINKFLAGS =	-O3 -pg
 LIB =           
 SIZE =		size
 

@@ -574,28 +574,32 @@ void FixDiffNuGrowth::change_dia()
     
     clock_t t4 = clock();
     
+    const double threeQuartersPI = (3.0/(4.0*MY_PI));
+    const double fourThirdsPI = 4.0*MY_PI/3.0;
+    const double third = 1.0/3.0;
+
+//#define one
+#ifdef one
     for (i = 0; i < nall; i++) {
         if (mask[i] & groupbit) {
-            double gHET = 0;
-            double gAOB = 0;
-            double gNOB = 0;
-            double gEPS = 0;
-            double gDEAD = 0;
-            
-            if (type[i] == 1) {
-                gHET = 1;
-            }
-            if (type[i] == 2) {
-                gAOB = 1;
-            }
-            if (type[i] == 3) {
-                gNOB = 1;
-            }
-            if (type[i] == 4) {
-                gEPS = 1;
-            }
-            if (type[i] == 6) {
-                gDEAD = 1;
+            double value = 0;
+            double value2 = 0;
+            switch (type[i]) {
+                case 1:
+                    value =   R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]] - R6[cellIn[i]] - R10[cellIn[i]] - R13[cellIn[i]] - R14[cellIn[i]];
+                    value2 = (R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]]) * update->dt * (YEPS/YHET);
+                    break;
+                case 2:
+                    value = (R2[cellIn[i]]-R7[cellIn[i]]-R11[cellIn[i]]);
+                    break;
+                case 3:
+                    value = (R3[cellIn[i]]-R8[cellIn[i]]-R12[cellIn[i]]);
+                    break;
+                case 4:
+                    value = bEPS;
+                    break;
+                case 6:
+                    value = bX;
             }
             
             sub[i] = subCell[cellIn[i]];
@@ -604,29 +608,96 @@ void FixDiffNuGrowth::change_dia()
             no2[i] = no2Cell[cellIn[i]];
             no3[i] = no3Cell[cellIn[i]];
             
-            double value = update->dt * (gHET*(R1[cellIn[i]]+R4[cellIn[i]]+R5[cellIn[i]]-R6[cellIn[i]]-R10[cellIn[i]]-R13[cellIn[i]]-R14[cellIn[i]]) + gAOB*(R2[cellIn[i]]-R7[cellIn[i]]-R11[cellIn[i]]) + gNOB*(R3[cellIn[i]]-R8[cellIn[i]]-R12[cellIn[i]]) - gEPS*bEPS - gDEAD*bX);
+            value *= update->dt;
             
-            density = rmass[i] / (4.0*MY_PI/3.0 *
-                                  radius[i]*radius[i]*radius[i]);
-            double oldMass = rmass[i];
+            density = rmass[i] / (fourThirdsPI * radius[i]*radius[i]*radius[i]);
             rmass[i] = rmass[i]*(1 + (value*nevery));
             
-            double value2 = update->dt * (YEPS/YHET)*(gHET*(R1[cellIn[i]]+R4[cellIn[i]]+R5[cellIn[i]]));
-            double oldRadius = radius[i];
             if (type[i] == 1) {
-                outerMass[i] = (((4.0*MY_PI/3.0)*((outerRadius[i]*outerRadius[i]*outerRadius[i])-(radius[i]*radius[i]*radius[i])))*EPSdens)+(value2*nevery*rmass[i]);
+                outerMass[i] = fourThirdsPI * (outerRadius[i] * outerRadius[i] * outerRadius[i] - radius[i] * radius[i] * radius[i]) * EPSdens
+                + value2 * nevery * rmass[i];
                 
-                outerRadius[i] = pow((3.0/(4.0*MY_PI))*((rmass[i]/density)+(outerMass[i]/EPSdens)),(1.0/3.0));
-                radius[i] = pow((3.0/(4.0*MY_PI))*(rmass[i]/density),(1.0/3.0));
+                outerRadius[i] = pow(threeQuartersPI * (rmass[i] / density + outerMass[i] / EPSdens), third);
+                radius[i] = pow(threeQuartersPI * rmass[i] / density, third);
             }
             else {
-                radius[i] = pow((3.0/(4.0*MY_PI))*(rmass[i]/density),(1.0/3.0));
+                radius[i] = pow(threeQuartersPI * rmass[i] / density, third);
+                outerMass[i] = 0.0;
+                outerRadius[i] = radius[i];
+            }
+        }
+    }
+#endif
+#ifndef one
+    // build up arrays of cells
+    double* caseOneOne = new double[numCells];
+    double* caseOneTwo = new double[numCells];
+    double* caseTwo = new double[numCells];
+    double* caseThree = new double[numCells];
+    
+    for (int j = 0; j < numCells; j++) {
+        caseOneOne[j] = (R1[j] + R4[j] + R5[j] - R6[j] - R10[j] - R13[j] - R14[j]) * update->dt;
+        caseOneTwo[j] = (R1[i] + R4[i] + R5[i]) * update->dt * (YEPS/YHET);
+        caseTwo[j] = (R2[j] - R7[j] - R11[j]) * update->dt;
+        caseThree[j] = (R3[j] - R8[j] - R12[j]) * update->dt;
+    }
+    
+    for (i = 0; i < nall; i++) {
+        if (mask[i] & groupbit) {
+            double value = 0;
+            double value2 = 0;
+            if (cellIn[i] >= numCells) {
+                printf("PANIC! outside of range!\n");
+                exit(44);
+            }
+            switch (type[i]) {
+                case 1:
+                    value = caseOneOne[cellIn[i]];
+                    value2 = caseOneTwo[cellIn[i]];
+                    break;
+                case 2:
+                    value = caseTwo[cellIn[i]];
+                    break;
+                case 3:
+                    value = caseThree[cellIn[i]];
+                    break;
+                case 4:
+                    value = bEPS;
+                    break;
+                case 6:
+                    value = bX;
+            }
+            
+            sub[i] = subCell[cellIn[i]];
+            o2[i] = o2Cell[cellIn[i]];
+            nh4[i] = nh4Cell[cellIn[i]];
+            no2[i] = no2Cell[cellIn[i]];
+            no3[i] = no3Cell[cellIn[i]];
+            
+            density = rmass[i] / (fourThirdsPI * radius[i]*radius[i]*radius[i]);
+            rmass[i] = rmass[i]*(1 + (value*nevery));
+            
+            if (type[i] == 1) {
+                outerMass[i] = fourThirdsPI * (outerRadius[i] * outerRadius[i] * outerRadius[i] - radius[i] * radius[i] * radius[i]) * EPSdens
+                + value2 * nevery * rmass[i];
+                
+                outerRadius[i] = pow(threeQuartersPI * (rmass[i] / density + outerMass[i] / EPSdens), third);
+                radius[i] = pow(threeQuartersPI * rmass[i] / density, third);
+            }
+            else {
+                radius[i] = pow(threeQuartersPI * rmass[i] / density, third);
                 outerMass[i] = 0.0;
                 outerRadius[i] = radius[i];
             }
         }
     }
     
+    delete [] caseOneOne;
+    delete [] caseOneTwo;
+    delete [] caseTwo;
+    delete [] caseThree;
+#endif
+
     clock_t t5 = clock();
     
     //output data
@@ -684,7 +755,10 @@ void FixDiffNuGrowth::change_dia()
     double t34 = (double) (t4-t3) / CLOCKS_PER_SEC * 1000.0;
     double t45 = (double) (t5-t4) / CLOCKS_PER_SEC * 1000.0;
     double t56 = (double) (t6-t5) / CLOCKS_PER_SEC * 1000.0;
-    //fprintf(stdout, "t01 = %f  t12 = %f  t23 = %f  t34 = %f  t45 = %f   t56 = %f\n", t01, t12, t23, t34, t45, t56);
+    
+    double totalT = 100/(t01 + t12 + t23 + t34 + t45 + t56);
+    //fprintf(stdout, "t01 = %f  t12 = %f  t23 = %f  t34 = %f  t45 = %f   t56 = %f\n", t01*totalT, t12*totalT, t23*totalT, t34*totalT, t45*totalT, t56*totalT);
+    //fprintf(stdout, "##, %f, %f, %f, %f, %f, %f\n", t01*totalT, t12*totalT, t23*totalT, t34*totalT, t45*totalT, t56*totalT);
 }
 
 bool FixDiffNuGrowth::is_convergence(double *nuCell, double *prevNuCell, double nuBC, double tol) {
