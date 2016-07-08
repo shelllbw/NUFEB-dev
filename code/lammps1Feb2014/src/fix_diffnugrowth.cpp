@@ -586,14 +586,14 @@ void FixDiffNuGrowth::change_dia()
             double value2 = 0;
             switch (type[i]) {
                 case 1:
-                    value =   R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]] - R6[cellIn[i]] - R10[cellIn[i]] - R13[cellIn[i]] - R14[cellIn[i]];
+                    value =  (R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]] - R6[cellIn[i]] - R10[cellIn[i]] - R13[cellIn[i]] - R14[cellIn[i]]) * update->dt;
                     value2 = (R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]]) * update->dt * (YEPS/YHET);
                     break;
                 case 2:
-                    value = (R2[cellIn[i]]-R7[cellIn[i]]-R11[cellIn[i]]);
+                    value = (R2[cellIn[i]]-R7[cellIn[i]]-R11[cellIn[i]]) * update->dt;
                     break;
                 case 3:
-                    value = (R3[cellIn[i]]-R8[cellIn[i]]-R12[cellIn[i]]);
+                    value = (R3[cellIn[i]]-R8[cellIn[i]]-R12[cellIn[i]]) * update->dt;
                     break;
                 case 4:
                     value = bEPS;
@@ -607,8 +607,6 @@ void FixDiffNuGrowth::change_dia()
             nh4[i] = nh4Cell[cellIn[i]];
             no2[i] = no2Cell[cellIn[i]];
             no3[i] = no3Cell[cellIn[i]];
-            
-            value *= update->dt;
             
             density = rmass[i] / (fourThirdsPI * radius[i]*radius[i]*radius[i]);
             rmass[i] = rmass[i]*(1 + (value*nevery));
@@ -629,6 +627,8 @@ void FixDiffNuGrowth::change_dia()
     }
 #endif
 #ifndef one
+    //##printf("Begin\n");
+    //##fflush(stdout);
     // build up arrays of cells
     double* caseOneOne = new double[numCells];
     double* caseOneTwo = new double[numCells];
@@ -653,13 +653,33 @@ void FixDiffNuGrowth::change_dia()
             switch (type[i]) {
                 case 1:
                     value = caseOneOne[cellIn[i]];
+                    if (value != (R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]] - R6[cellIn[i]] - R10[cellIn[i]] - R13[cellIn[i]] - R14[cellIn[i]]) * update->dt) {
+                        printf("Case 1 value missmatched value!\n");
+                        printf("%f != %f \n", value, (R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]] - R6[cellIn[i]] - R10[cellIn[i]] - R13[cellIn[i]] - R14[cellIn[i]]) * update->dt);
+                        exit(44);
+                    }
                     value2 = caseOneTwo[cellIn[i]];
+                    if (value2 != (R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]]) * update->dt * (YEPS/YHET)) {
+                        printf("Case 1 value2 missmatched value!\n");
+                        printf("%f != %f \n", value, (R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]]) * update->dt * (YEPS/YHET));
+                        exit(44);
+                    }
                     break;
                 case 2:
                     value = caseTwo[cellIn[i]];
+                    if (value != (R2[cellIn[i]]-R7[cellIn[i]]-R11[cellIn[i]]) * update->dt) {
+                        printf("Case 2 missmatched value!\n");
+                        printf("%f != %f \n", value, (R2[cellIn[i]]-R7[cellIn[i]]-R11[cellIn[i]]) * update->dt);
+                        exit(44);
+                    }
                     break;
                 case 3:
                     value = caseThree[cellIn[i]];
+                    if (value !=  (R3[cellIn[i]]-R8[cellIn[i]]-R12[cellIn[i]]) * update->dt) {
+                        printf("Case 3 missmatched value!\n");
+                        printf("%f != %f \n", value, (R3[cellIn[i]]-R8[cellIn[i]]-R12[cellIn[i]]) * update->dt);
+                        exit(44);
+                    }
                     break;
                 case 4:
                     value = bEPS;
@@ -696,6 +716,8 @@ void FixDiffNuGrowth::change_dia()
     delete [] caseOneTwo;
     delete [] caseTwo;
     delete [] caseThree;
+    //##printf("End\n");
+    //##fflush(stdout);
 #endif
 
     clock_t t5 = clock();
