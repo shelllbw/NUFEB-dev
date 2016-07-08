@@ -653,33 +653,41 @@ void FixDiffNuGrowth::change_dia()
             switch (type[i]) {
                 case 1:
                     value = caseOneOne[cellIn[i]];
-                    if (value != (R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]] - R6[cellIn[i]] - R10[cellIn[i]] - R13[cellIn[i]] - R14[cellIn[i]]) * update->dt) {
+                    #ifdef DEBUG_ASM 
+                    if (abs(value - (R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]] - R6[cellIn[i]] - R10[cellIn[i]] - R13[cellIn[i]] - R14[cellIn[i]]) * update->dt) > 1e-20) {
                         printf("Case 1 value missmatched value!\n");
                         printf("%f != %f \n", value, (R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]] - R6[cellIn[i]] - R10[cellIn[i]] - R13[cellIn[i]] - R14[cellIn[i]]) * update->dt);
                         exit(44);
                     }
+		    #endif
                     value2 = caseOneTwo[cellIn[i]];
-                    if (value2 != (R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]]) * update->dt * (YEPS/YHET)) {
+		    #ifdef DEBUG_ASM
+                    if (abs(value2 - (R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]]) * update->dt * (YEPS/YHET)) > 1e-20) {
                         printf("Case 1 value2 missmatched value!\n");
-                        printf("%f != %f \n", value, (R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]]) * update->dt * (YEPS/YHET));
+                        printf("%f != %f diff=%f\n", value2, (R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]]) * update->dt * (YEPS/YHET), value2-(R1[cellIn[i]] + R4[cellIn[i]] + R5[cellIn[i]]) * update->dt * (YEPS/YHET));
                         exit(44);
                     }
+		    #endif
                     break;
                 case 2:
                     value = caseTwo[cellIn[i]];
-                    if (value != (R2[cellIn[i]]-R7[cellIn[i]]-R11[cellIn[i]]) * update->dt) {
+   		    #ifdef DEBUG_ASM
+                    if (abs(value - (R2[cellIn[i]]-R7[cellIn[i]]-R11[cellIn[i]]) * update->dt) > 1e-20) {
                         printf("Case 2 missmatched value!\n");
                         printf("%f != %f \n", value, (R2[cellIn[i]]-R7[cellIn[i]]-R11[cellIn[i]]) * update->dt);
                         exit(44);
                     }
+ 		    #endif
                     break;
                 case 3:
                     value = caseThree[cellIn[i]];
-                    if (value !=  (R3[cellIn[i]]-R8[cellIn[i]]-R12[cellIn[i]]) * update->dt) {
+		    #ifdef DEBUG_ASM
+                    if (abs(value - (R3[cellIn[i]]-R8[cellIn[i]]-R12[cellIn[i]]) * update->dt) > 1e-20) {
                         printf("Case 3 missmatched value!\n");
                         printf("%f != %f \n", value, (R3[cellIn[i]]-R8[cellIn[i]]-R12[cellIn[i]]) * update->dt);
                         exit(44);
                     }
+		    #endif
                     break;
                 case 4:
                     value = bEPS;
