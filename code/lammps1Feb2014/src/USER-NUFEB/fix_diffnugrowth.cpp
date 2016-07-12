@@ -442,7 +442,7 @@ void FixDiffNuGrowth::change_dia()
         int iteration = 0;
         double tol = 1e-6; // Tolerance for convergence criteria for nutrient balance equation
 
-//#define first
+#define first
 #ifndef first
         double* subCellCurrent = subCell;
         double* subCellLast = subPrev;
@@ -480,7 +480,7 @@ void FixDiffNuGrowth::change_dia()
             bool swap = false;
             // Swap subCellCurrent to point at the other one
             if (subCellCurrent == subCell) {
-                printf("a");
+                //printf("a");
                 swap = true;
                 subCellCurrent = subPrev;
                 subCellLast = subCell;
@@ -498,7 +498,7 @@ void FixDiffNuGrowth::change_dia()
                 nh4CellLast = nh4Cell;
             }
             else {
-                printf("b");
+                //printf("b");
                 swap = true;
                 subCellCurrent = subCell;
                 subCellLast = subPrev;
@@ -942,8 +942,11 @@ void FixDiffNuGrowth::compute_flux(double *cellDNu, double *nuCell, double *nuPr
         double Ratesub = jX + jY + jZ + rateNu;
         //Updating the value: Ratesub*diffT + nuCell[cell](previous)
         //##ASM
+#ifdef first
+        nuCell[cell] += Ratesub*diffT;
+#else
         nuCell[cell] = nuPrev[cell] + Ratesub*diffT;
-        
+#endif
         // printf("cell= %i, right=%i, left=%i, up=%i, down=%i, forw=%i, back=%i,  \n",cell, rightCell, leftCell, upCell, downCell, forwardCell, backwardCell);
         if(nuCell[cell] <= 1e-20){
             nuCell[cell] = 1e-20;
