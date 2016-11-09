@@ -477,8 +477,11 @@ void FixDiffNuGrowth::change_dia()
                 no3Prev[cell] = no3Cell[cell];
             }
 #else
+            bool swap = false;
             // Swap subCellCurrent to point at the other one
             if (subCellCurrent == subCell) {
+                //printf("a");
+                swap = true;
                 subCellCurrent = subPrev;
                 subCellLast = subCell;
                 
@@ -495,6 +498,8 @@ void FixDiffNuGrowth::change_dia()
                 nh4CellLast = nh4Cell;
             }
             else {
+                //printf("b");
+                swap = true;
                 subCellCurrent = subCell;
                 subCellLast = subPrev;
                 
@@ -509,6 +514,10 @@ void FixDiffNuGrowth::change_dia()
                 
                 nh4CellCurrent = nh4Cell;
                 nh4CellLast = nh4Prev;
+            }
+            if (!swap) {
+                printf("No swap performed\n");
+                exit(55);
             }
 #endif
             
@@ -525,23 +534,6 @@ void FixDiffNuGrowth::change_dia()
                 R12[cell] = bmNOB*(o2Prev[cell]/(Ko2NOB+o2Prev[cell]));
                 R13[cell] = (1/2.86)*bmHET*etaHET*(no3Prev[cell]/(Kno3HET+no3Prev[cell]))*(Ko2HET/(Ko2HET+o2Prev[cell]));
                 R14[cell] = (1/1.71)*bmHET*etaHET*(no2Prev[cell]/(Kno2HET+no2Prev[cell]))*(Ko2HET/(Ko2HET+o2Prev[cell]));
-                
-                Rs[cell] = ( (-1/YHET) * ( (R1[cell]+R4[cell]+R5[cell]) * xHET[cell] ) ) + R6[cell]*xHET[cell] + R7[cell]*xAOB[cell] + R8[cell]*xNOB[cell] + R9[cell]*xEPS[cell];
-                Ro2[cell] = (-((1-YHET-YEPS)/YHET)*R1[cell]*xHET[cell])-(((3.42-YAOB)/YAOB)*R2[cell]*xAOB[cell])-(((1.15-YNOB)/YNOB)*R3[cell]*xNOB[cell]);
-                Rnh4[cell] = -(1/YAOB)*R2[cell]*xAOB[cell];
-                Rno2[cell] = ((1/YAOB)*R2[cell]*xAOB[cell])-((1/YNOB)*R3[cell]*xNOB[cell])-(((1-YHET-YEPS)/(1.17*YHET))*R5[cell]*xHET[cell]);
-                Rno3[cell] = ((1/YNOB)*R3[cell]*xNOB[cell])-(((1-YHET-YEPS)/(2.86*YHET))*R4[cell]*xHET[cell]);
-                //Decay and maintenance
-                Rs[cell] +=  (bX * xDEAD[cell]);
-                Ro2[cell] = Ro2[cell] - ((R10[cell] * xHET[cell]) + (R11[cell] * xAOB[cell]) + (R12[cell] * xNOB[cell]));
-                Rno2[cell] = Rno2[cell] - (R14[cell] * xHET[cell]);
-                Rno3[cell] = Rno3[cell] -(R13[cell] * xHET[cell]);
-                
-                if(!subConvergence) compute_flux(cellDs, subCell, subPrev, subBC, Rs[cell], diffT, cell);
-                if(!o2Convergence) compute_flux(cellDo2, o2Cell, o2Prev, o2BC, Ro2[cell], diffT, cell);
-                if(!nh4Convergence) compute_flux(cellDnh4, nh4Cell, nh4Prev, nh4BC, Rnh4[cell], diffT, cell);
-                if(!no2Convergence) compute_flux(cellDno2, no2Cell, no2Prev, no2BC, Rno2[cell], diffT, cell);
-                if(!no3Convergence) compute_flux(cellDno3, no3Cell, no3Prev, no3BC, Rno3[cell], diffT, cell);
 #else
                 R1[cell] = MumHET*(subCellLast[cell]/(KsHET+subCellLast[cell]))*(o2CellLast[cell]/(Ko2HET+o2CellLast[cell]));
                 R2[cell] = MumAOB*(nh4CellLast[cell]/(Knh4AOB+nh4CellLast[cell]))*(o2CellLast[cell]/(Ko2AOB+o2CellLast[cell]));
@@ -554,7 +546,7 @@ void FixDiffNuGrowth::change_dia()
                 R12[cell] = bmNOB*(o2CellLast[cell]/(Ko2NOB+o2CellLast[cell]));
                 R13[cell] = (1/2.86)*bmHET*etaHET*(no3CellLast[cell]/(Kno3HET+no3CellLast[cell]))*(Ko2HET/(Ko2HET+o2CellLast[cell]));
                 R14[cell] = (1/1.71)*bmHET*etaHET*(no2CellLast[cell]/(Kno2HET+no2CellLast[cell]))*(Ko2HET/(Ko2HET+o2CellLast[cell]));
-                
+#endif
                 Rs[cell] = ( (-1/YHET) * ( (R1[cell]+R4[cell]+R5[cell]) * xHET[cell] ) ) + R6[cell]*xHET[cell] + R7[cell]*xAOB[cell] + R8[cell]*xNOB[cell] + R9[cell]*xEPS[cell];
                 Ro2[cell] = (-((1-YHET-YEPS)/YHET)*R1[cell]*xHET[cell])-(((3.42-YAOB)/YAOB)*R2[cell]*xAOB[cell])-(((1.15-YNOB)/YNOB)*R3[cell]*xNOB[cell]);
                 Rnh4[cell] = -(1/YAOB)*R2[cell]*xAOB[cell];
@@ -566,6 +558,14 @@ void FixDiffNuGrowth::change_dia()
                 Rno2[cell] = Rno2[cell] - (R14[cell] * xHET[cell]);
                 Rno3[cell] = Rno3[cell] -(R13[cell] * xHET[cell]);
                 
+#ifdef first
+                if(!subConvergence) compute_flux(cellDs, subCell, subPrev, subBC, Rs[cell], diffT, cell);
+                if(!o2Convergence) compute_flux(cellDo2, o2Cell, o2Prev, o2BC, Ro2[cell], diffT, cell);
+                if(!nh4Convergence) compute_flux(cellDnh4, nh4Cell, nh4Prev, nh4BC, Rnh4[cell], diffT, cell);
+                if(!no2Convergence) compute_flux(cellDno2, no2Cell, no2Prev, no2BC, Rno2[cell], diffT, cell);
+                if(!no3Convergence) compute_flux(cellDno3, no3Cell, no3Prev, no3BC, Rno3[cell], diffT, cell);
+
+#else
                 if(!subConvergence) compute_flux(cellDs, subCellCurrent, subCellLast, subBC, Rs[cell], diffT, cell);
                 if(!o2Convergence) compute_flux(cellDo2, o2CellCurrent, o2CellLast, o2BC, Ro2[cell], diffT, cell);
                 if(!nh4Convergence) compute_flux(cellDnh4, nh4CellCurrent, nh4CellLast, nh4BC, Rnh4[cell], diffT, cell);
@@ -941,8 +941,12 @@ void FixDiffNuGrowth::compute_flux(double *cellDNu, double *nuCell, double *nuPr
         // Adding fluxes in all the directions and the uptake rate (RHS side of the equation)
         double Ratesub = jX + jY + jZ + rateNu;
         //Updating the value: Ratesub*diffT + nuCell[cell](previous)
+        //##ASM
+#ifdef first
         nuCell[cell] += Ratesub*diffT;
-        
+#else
+        nuCell[cell] = nuPrev[cell] + Ratesub*diffT;
+#endif
         // printf("cell= %i, right=%i, left=%i, up=%i, down=%i, forw=%i, back=%i,  \n",cell, rightCell, leftCell, upCell, downCell, forwardCell, backwardCell);
         if(nuCell[cell] <= 1e-20){
             nuCell[cell] = 1e-20;
