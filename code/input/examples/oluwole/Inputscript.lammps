@@ -95,7 +95,7 @@ compute mySeg all segregation v_cutoff
 ##############Simulation outputs##############
 
 dump		id all custom 20 snapshot.bubblemd id type diameter x y z
-dump            d0 all bio 20 biomass Conc DGRAn DGRCat ph gas
+dump            d0 all bio 20 biomass conc DGRAn DGRCat ph gas
 #thermo_style    custom step cpu atoms c_myNtypes[*] c_myMass[*] c_myDia c_myDimen c_myDiver[*] c_myHeight c_myRough c_mySeg
 thermo_style    custom step cpu atoms c_myNtypes[*]
 thermo		1	
