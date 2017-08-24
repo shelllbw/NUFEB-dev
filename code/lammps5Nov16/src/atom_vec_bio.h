@@ -36,6 +36,7 @@ class AtomVecBio : public AtomVecSphere {
   int maskDEAD;               // mask of HET group
   int typeEPS;                // itype of EPS
   int typeDEAD;                // itype of DEAD
+
   //double *virtualMass;
 
   class BIO *bio;

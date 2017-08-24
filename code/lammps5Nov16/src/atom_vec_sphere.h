@@ -76,6 +76,7 @@ class AtomVecSphere : public AtomVec {
   double *radius,*rmass;
   double **omega,**torque;
   int radvary;
+  int *stype;
 };
 
 }

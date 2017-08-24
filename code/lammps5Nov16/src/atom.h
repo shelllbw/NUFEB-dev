@@ -52,6 +52,7 @@ class Atom : protected Pointers {
   int *type,*mask;
   imageint *image;
   double **x,**v,**f;
+  int *stype;                     // nufeb immigration, sample type
 
   tagint *molecule;
   int *molindex,*molatom;

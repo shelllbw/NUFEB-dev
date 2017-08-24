@@ -94,6 +94,7 @@ void AtomVecSphere::grow(int n)
   x = memory->grow(atom->x,nmax,3,"atom:x");
   v = memory->grow(atom->v,nmax,3,"atom:v");
   f = memory->grow(atom->f,nmax*comm->nthreads,3,"atom:f");
+  stype = memory->grow(atom->stype,nmax,"atom:stype");
 
   radius = memory->grow(atom->radius,nmax,"atom:radius");
   rmass = memory->grow(atom->rmass,nmax,"atom:rmass");
@@ -116,6 +117,7 @@ void AtomVecSphere::grow_reset()
   x = atom->x; v = atom->v; f = atom->f;
   radius = atom->radius; rmass = atom->rmass;
   omega = atom->omega; torque = atom->torque;
+  stype = atom->stype;
 }
 
 /* ----------------------------------------------------------------------
@@ -126,6 +128,7 @@ void AtomVecSphere::copy(int i, int j, int delflag)
 {
   tag[j] = tag[i];
   type[j] = type[i];
+  stype[j] = stype[i];
   mask[j] = mask[i];
   image[j] = image[i];
   x[j][0] = x[i][0];
@@ -935,6 +938,7 @@ void AtomVecSphere::create_atom(int itype, double *coord)
 
   tag[nlocal] = 0;
   type[nlocal] = itype;
+  atom->stype[nlocal] = 0;
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
   x[nlocal][2] = coord[2];
@@ -966,6 +970,7 @@ void AtomVecSphere::data_atom(double *coord, imageint imagetmp, char **values)
 
   tag[nlocal] = ATOTAGINT(values[0]);
   type[nlocal] = atoi(values[1]);
+  stype[nlocal] = type[nlocal];
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 

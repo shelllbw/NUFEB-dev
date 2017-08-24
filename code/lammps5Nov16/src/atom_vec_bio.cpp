@@ -81,6 +81,7 @@ void AtomVecBio::init()
       comm_x_only = 0;
       size_forward = 5;
     }
+
   set_group_mask();
 }
 

@@ -43,7 +43,7 @@ enum{ID,MOL,PROC,PROCP1,TYPE,ELEMENT,MASS,
      Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
      OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
      TQX,TQY,TQZ,
-     COMPUTE,FIX,VARIABLE,INAME,DNAME};
+     COMPUTE,FIX,VARIABLE,INAME,DNAME,STYPE};
 enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 enum{INT,DOUBLE,STRING,BIGINT};    // same as in DumpCFG
 
@@ -785,7 +785,12 @@ int DumpCustom::count()
       } else if (thresh_array[ithresh] == VX) {
         ptr = &atom->v[0][0];
         nstride = 3;
-      } else if (thresh_array[ithresh] == VY) {
+      } else if (thresh_array[ithresh] == STYPE) {
+        int *stype = atom->stype;
+        for (i = 0; i < nlocal; i++) dchoose[i] = stype[i];
+        ptr = dchoose;
+        nstride = 1;
+      }  else if (thresh_array[ithresh] == VY) {
         ptr = &atom->v[0][1];
         nstride = 3;
       } else if (thresh_array[ithresh] == VZ) {
@@ -1464,7 +1469,11 @@ int DumpCustom::parse_fields(int narg, char **arg)
       field2index[i] = add_custom(suffix,0);
       delete [] suffix;
 
-    } else return iarg;
+    } else if (strcmp(arg[iarg],"stype") == 0) {
+      pack_choice[i] = &DumpCustom::pack_stype;
+      vtype[i] = INT;
+
+    }else return iarg;
   }
 
   return narg;
@@ -1775,7 +1784,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"tqx") == 0) thresh_array[nthresh] = TQX;
     else if (strcmp(arg[1],"tqy") == 0) thresh_array[nthresh] = TQY;
     else if (strcmp(arg[1],"tqz") == 0) thresh_array[nthresh] = TQZ;
-
+    else if (strcmp(arg[1],"stype") == 0) thresh_array[nthresh] = STYPE;
     // compute value = c_ID
     // if no trailing [], then arg is set to 0, else arg is between []
     // must grow field2index and argindex arrays, since access is beyond nfield
@@ -1975,6 +1984,19 @@ int DumpCustom::modify_param(int narg, char **arg)
 
   return 0;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_stype(int n)
+{
+  int *stype = atom->stype;
+
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = stype[clist[i]];
+    n += size_one;
+  }
+}
+
 
 /* ----------------------------------------------------------------------
    return # of bytes of allocated memory in buf, choose, variable arrays

@@ -141,6 +141,9 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   nmolecule = 0;
   molecules = NULL;
 
+  // user-nufeb
+  stype = NULL;
+
   // custom atom arrays
 
   nivector = ndvector = 0;
@@ -239,6 +242,7 @@ Atom::~Atom()
 
   memory->destroy(tag);
   memory->destroy(type);
+  memory->destroy(stype);
   memory->destroy(mask);
   memory->destroy(image);
   memory->destroy(x);

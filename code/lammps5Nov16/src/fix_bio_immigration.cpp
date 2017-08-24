@@ -93,8 +93,6 @@ FixImmigration::FixImmigration(LAMMPS *lmp, int narg, char **arg) :
 
   bio = avec->bio;
 
-  for (int i = 0; i < atom->nlocal; i++)   atom->omega[i][0] = atom->type[i];
-
   force_reneighbor = 1;
   next_reneighbor = update->ntimestep + 1;
 }
@@ -306,11 +304,11 @@ void FixImmigration::immgration() {
 
   atom->v[n][0] = atom->v[i][0];
   atom->v[n][1] = atom->v[i][1];
-  atom->v[n][2] = -10;
+  atom->v[n][2] = atom->v[i][2];
 
   atom->f[n][0] = atom->f[i][0];
   atom->f[n][1] = atom->f[i][1];
-  atom->f[n][2] = -10;
+  atom->f[n][2] = atom->f[i][2];
 
   atom->omega[n][0] = atom->omega[i][0];
   atom->omega[n][1] = atom->omega[i][1];
@@ -320,6 +318,7 @@ void FixImmigration::immgration() {
   atom->torque[n][1] = atom->torque[i][1];
   atom->torque[n][2] = atom->torque[i][2];
 
+  atom->stype[n] = atom->stype[i];
   atom->rmass[n] = newMass;
   avec->outerMass[n] = newMass;
 

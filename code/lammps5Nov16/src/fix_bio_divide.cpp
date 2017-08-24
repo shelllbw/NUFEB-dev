@@ -272,6 +272,7 @@ void FixDivide::post_integrate()
         atom->tag[n] = maxtag_all+1;
         atom->mask[n] = atom->mask[i];
         atom->image[n] = atom->image[i];
+        atom->stype[n] = atom->stype[i];
 
         atom->v[n][0] = atom->v[i][0];
         atom->v[n][1] = atom->v[i][1];
