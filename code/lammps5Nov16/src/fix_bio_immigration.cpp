@@ -161,7 +161,7 @@ void FixImmigration::post_integrate()
 void FixImmigration::immgration() {
   // sample from metacommunity with uniform distribution
   int sampleT = 0;
-  mt19937 generator(update->ntimestep);
+  mt19937 generator(update->ntimestep + seed);
 
   if (atom->ntypes == 1 && avec->typeEPS == 1) return;
   else if (atom->ntypes == 1 && avec->typeDEAD == 1) return;
