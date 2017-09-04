@@ -260,8 +260,8 @@ double FixKineticsEnergy::biomass(int i) {
         if (1.2 * bacMaint < qCat) {
           double metCoeff = catCoeff[t][nu] * invYield + anabCoeff[t][nu];
 
-          //mu = gYield[t][pos] * (qMet - bacMaint);
-          mu = qMet - bacMaint;
+          mu = gYield[t][pos] * (qMet - bacMaint);
+          //mu = qMet - bacMaint;
           mass = mu * rmass[i];
           consume = mass  * metCoeff;
         } else if (qCat <= 1.2 * bacMaint && bacMaint <= qCat) {
@@ -285,8 +285,8 @@ double FixKineticsEnergy::biomass(int i) {
   }
 
   if (1.2 * bacMaint < qCat) {
-    //mu = gYield[t][pos] * (qMet - bacMaint);
-    mu = qMet - bacMaint;
+    mu = gYield[t][pos] * (qMet - bacMaint);
+    //mu = qMet - bacMaint;
     mass = mu * rmass[i];
   } else if (qCat <= 1.2 * bacMaint && bacMaint <= qCat) {
     mass = 0;
