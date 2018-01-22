@@ -143,6 +143,8 @@ void FixImmigration::init()
 
   divMass = input->variable->compute_equal(ivar[0]);
   density = input->variable->compute_equal(ivar[1]);
+
+  nitypes = atom->ntypes;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,86 +171,85 @@ void FixImmigration::immgration() {
 
   // get sample type id
   do {
-  uniform_int_distribution<int> uniformIdis(1,atom->ntypes);
-  sampleT = uniformIdis(generator);
+    uniform_int_distribution<int> uniformIdis(1,atom->ntypes);
+    sampleT = uniformIdis(generator);
   } while (sampleT == avec->typeDEAD || sampleT == avec->typeEPS);
 
   // create new type
-  char *oldName = bio->typeName[sampleT];
-  char *newName = create_type_name(oldName);
-  bio->create_type(newName);
+//  char *oldName = bio->typeName[sampleT];
+//  char *newName = create_type_name(oldName);
+//  bio->create_type(newName);
   // new type id
-  int newT = atom->ntypes;
+//  int newT = atom->ntypes;
+//
+//  // take type parameters from sample type
+//  if (bio->yield != NULL) bio->yield[newT] = bio->yield[sampleT];
+//  if (bio->maintain != NULL) bio->maintain[newT] = bio->maintain[sampleT];
+//  if (bio->decay != NULL) bio->decay[newT] = bio->decay[sampleT];
+//  if (bio->dissipation != NULL) bio->dissipation[newT] = bio->dissipation[sampleT];
+//  if (bio->anabCoeff != NULL) memcpy(bio->anabCoeff[newT], bio->anabCoeff[sampleT], (bio->nnus + 1) * sizeof(double));
+//  if (bio->catCoeff != NULL) memcpy(bio->catCoeff[newT], bio->catCoeff[sampleT], (bio->nnus + 1) * sizeof(double));
+//  if (bio->decayCoeff != NULL) memcpy(bio->decayCoeff[newT], bio->decayCoeff[sampleT], (bio->nnus + 1) * sizeof(double));
+//  if (bio->typeGCoeff != NULL) memcpy(bio->typeGCoeff[newT], bio->typeGCoeff[sampleT], 5 * sizeof(double));
+//  if (bio->tgflag != NULL) bio->tgflag[newT] = bio->tgflag[sampleT];
+//  if (bio->typeChr != NULL) bio->typeChr[newT] = bio->typeChr[sampleT];
+//  if (bio->eD != NULL) bio->eD[newT] = bio->eD[sampleT];
+//  kinetics->grow();
 
-  // take type parameters from sample type
-  if (bio->yield != NULL) bio->yield[newT] = bio->yield[sampleT];
-  if (bio->maintain != NULL) bio->maintain[newT] = bio->maintain[sampleT];
-  if (bio->decay != NULL) bio->decay[newT] = bio->decay[sampleT];
-  if (bio->dissipation != NULL) bio->dissipation[newT] = bio->dissipation[sampleT];
-  if (bio->anabCoeff != NULL) memcpy(bio->anabCoeff[newT], bio->anabCoeff[sampleT], (bio->nnus + 1) * sizeof(double));
-  if (bio->catCoeff != NULL) memcpy(bio->catCoeff[newT], bio->catCoeff[sampleT], (bio->nnus + 1) * sizeof(double));
-  if (bio->decayCoeff != NULL) memcpy(bio->decayCoeff[newT], bio->decayCoeff[sampleT], (bio->nnus + 1) * sizeof(double));
-  if (bio->typeGCoeff != NULL) memcpy(bio->typeGCoeff[newT], bio->typeGCoeff[sampleT], 5 * sizeof(double));
-  if (bio->tgflag != NULL) bio->tgflag[newT] = bio->tgflag[sampleT];
-  if (bio->typeChr != NULL) bio->typeChr[newT] = bio->typeChr[sampleT];
-  if (bio->eD != NULL) bio->eD[newT] = bio->eD[sampleT];
-  kinetics->grow();
-//  if (atom->ntypes > 5)
-//  test(5, 2);
   // take mu from gamma distribution
   // parameter estimation
-  double muMin, muMax;
-  double newMu;
-  double scf = 0.05;
-  double muDiff;
-
-  double *xMu = new double[1000];
-
-  muMin = bio->mu[sampleT] - scf * bio->mu[sampleT];
-  muMax = bio->mu[sampleT] + scf * bio->mu[sampleT];
-  muDiff = muMax - muMin;
-
-  for (int i = 0; i < 1000; i++) {
-    xMu[i] = muMin + (muDiff / 1000) * (i+1);
-  }
-
-  double muParam[2];
-  gamfit(xMu, 1000, muParam);
-  gamma_distribution<double> gammaMu(muParam[0],muParam[1]);
-  newMu = gammaMu(generator);
-  if (bio->mu != NULL) bio->mu[newT] = newMu;
+//  double muMin, muMax;
+//  double newMu;
+//  double scf = 0.05;
+//  double muDiff;
+//
+//  double *xMu = new double[1000];
+//
+//  muMin = bio->mu[sampleT] - scf * bio->mu[sampleT];
+//  muMax = bio->mu[sampleT] + scf * bio->mu[sampleT];
+//  muDiff = muMax - muMin;
+//
+//  for (int i = 0; i < 1000; i++) {
+//    xMu[i] = muMin + (muDiff / 1000) * (i+1);
+//  }
+//
+//  double muParam[2];
+//  gamfit(xMu, 1000, muParam);
+//  gamma_distribution<double> gammaMu(muParam[0],muParam[1]);
+//  newMu = gammaMu(generator);
+//  if (bio->mu != NULL) bio->mu[newT] = newMu;
 
   // take ks from gamma distribution
-  for (int nu = 1; nu < bio->nnus+1; nu++) {
-    if (bio->ks[sampleT][nu] != 0) {
-      double ksMin, ksMax;
-      double newKs;
-      double scf2 = 0.05;
-      double ksDiff;
-      double *xKs = new double[1000];
-
-      ksMin = bio->ks[sampleT][nu] - scf2 * bio->ks[sampleT][nu];
-      ksMax = bio->ks[sampleT][nu] + scf2 * bio->ks[sampleT][nu];
-      ksDiff = ksMax - ksMin;
-
-      for (int i = 0; i < 1000; i++) {
-        xKs[i] = ksMin + (ksDiff / 1000) * (i+1);
-      }
-
-      double ksParam[2];
-      gamfit(xKs, 1000, ksParam);
-      gamma_distribution<double> gammaKs(ksParam[0],ksParam[1]);
-      newKs = gammaKs(generator);
-
-      if (bio->ks != NULL) {
-        if (bio->ks > 0)  bio->ks[newT][nu] = newKs;
-        else  bio->ks[newT][nu] = 0;
-      }
-
-      delete []xKs;
-
-    } else bio->ks[newT][nu] = 0;
-  }
+//  for (int nu = 1; nu < bio->nnus+1; nu++) {
+//    if (bio->ks[sampleT][nu] != 0) {
+//      double ksMin, ksMax;
+//      double newKs;
+//      double scf2 = 0.05;
+//      double ksDiff;
+//      double *xKs = new double[1000];
+//
+//      ksMin = bio->ks[sampleT][nu] - scf2 * bio->ks[sampleT][nu];
+//      ksMax = bio->ks[sampleT][nu] + scf2 * bio->ks[sampleT][nu];
+//      ksDiff = ksMax - ksMin;
+//
+//      for (int i = 0; i < 1000; i++) {
+//        xKs[i] = ksMin + (ksDiff / 1000) * (i+1);
+//      }
+//
+//      double ksParam[2];
+//      gamfit(xKs, 1000, ksParam);
+//      gamma_distribution<double> gammaKs(ksParam[0],ksParam[1]);
+//      newKs = gammaKs(generator);
+//
+//      if (bio->ks != NULL) {
+//        if (bio->ks > 0)  bio->ks[newT][nu] = newKs;
+//        else  bio->ks[newT][nu] = 0;
+//      }
+//
+//      delete []xKs;
+//
+//    } else bio->ks[newT][nu] = 0;
+//  }
 
   //Randomise mass of immigrant (Gamma distribution)
   double newMass;
@@ -294,7 +295,8 @@ void FixImmigration::immgration() {
   }
 
   find_maxid();
-  atom->avec->create_atom(newT,coord);
+  atom->avec->create_atom(sampleT,coord);
+  nitypes ++;
   // new atom
   int n = atom->nlocal-1;
 
@@ -318,14 +320,14 @@ void FixImmigration::immgration() {
   atom->torque[n][1] = atom->torque[i][1];
   atom->torque[n][2] = atom->torque[i][2];
 
-  atom->stype[n] = atom->stype[i];
+  atom->stype[n] = nitypes;
   atom->rmass[n] = newMass;
   avec->outerMass[n] = newMass;
 
   atom->radius[n] = newRadius;
   avec->outerRadius[n] = newRadius;
 
-  avec->atom_mu[n] = newMu;
+  avec->atom_mu[n] = avec->atom_mu[i];
 
   atom->natoms++;
 
@@ -348,7 +350,7 @@ void FixImmigration::immgration() {
 //  }
 
   delete []xMass;
-  delete []xMu;
+ // delete []xMu;
   delete []coord;
 }
 

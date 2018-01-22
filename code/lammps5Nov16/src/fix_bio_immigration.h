@@ -41,6 +41,7 @@ class FixImmigration : public Fix {
   double xlo,xhi,ylo,yhi,zlo,zhi;
   tagint maxtag_all;
   int zflag;
+  int nitypes;        // # of invader types
 
   double* gamfit(double*, int, double*);
   double find_z(double, double, double);

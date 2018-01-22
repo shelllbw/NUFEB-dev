@@ -110,6 +110,7 @@ void FixSwim::post_force(int vflag)
         }
       }
     }
+
     if (numneigh == 0) {
       c++;
       f[i][2] += rate;
