@@ -273,7 +273,7 @@ inline double FixKineticsEnergy::biomass(int i, double **gMonod) {
       consume = -mass * bio->decayCoeff[t][nu] + catCoeff[t][nu] * gYield[t][pos] * qCat * rmass[i];
     }
 
-    if (nuConv[nu]) continue;
+    // if (nuConv[nu]) continue;
     // convert biomass unit from kg/m3 to mol/L
     consume = consume / (vol * 24.6);
     nuR[nu][pos] += consume;

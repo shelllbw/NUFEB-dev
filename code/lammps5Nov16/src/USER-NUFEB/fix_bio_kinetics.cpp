@@ -411,7 +411,6 @@ void FixKinetics::integration() {
   bool isConv = false;
   int nnus = bio->nnus;
 
-  // gflag = 0;
   update_bgrids();
 
   // update grid biomass to calculate diffusion coeff

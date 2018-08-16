@@ -321,7 +321,7 @@ int *FixKineticsDiffusion::diffusion(int *nuConv, int iter, double diffT) {
 
           compute_flux(diffCoeff, nuGrid[i][grid], nuPrev[i], r, grid, ind);
 
-          nuR[i][ind] = 0;
+	  // nuR[i][ind] = 0;
 
           if (nuGrid[i][grid] > 0) {
             (unit == 1) ? (nuS[i][ind] = nuGrid[i][grid]) : (nuS[i][ind] = nuGrid[i][grid] / 1000);
