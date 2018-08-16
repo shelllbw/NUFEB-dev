@@ -436,6 +436,8 @@ void FixKinetics::integration() {
     if (niter > 0 && iteration >= niter) isConv = true;
   }
 
+  reset_nuR();
+
   gflag = 1;
   if (energy != NULL) {
     if (ph != NULL) ph->solve_ph();

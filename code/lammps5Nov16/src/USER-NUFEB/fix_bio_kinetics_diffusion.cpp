@@ -330,8 +330,8 @@ int *FixKineticsDiffusion::diffusion(int *nuConv, int iter, double diffT) {
             nuS[i][ind] = 1e-20;
           }
 
-    if (maxS[i] < nuGrid[i][grid])
-      maxS[i] = nuGrid[i][grid];
+	  if (maxS[i] < nuGrid[i][grid])
+	    maxS[i] = nuGrid[i][grid];
         } else
           compute_bc(nuGrid[i][grid], nuPrev[i], grid, nuBS[i]);
       }
