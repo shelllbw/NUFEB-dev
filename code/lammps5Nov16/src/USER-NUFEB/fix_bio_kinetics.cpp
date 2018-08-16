@@ -411,9 +411,8 @@ void FixKinetics::integration() {
   bool isConv = false;
   int nnus = bio->nnus;
 
-  gflag = 0;
+  // gflag = 0;
   update_bgrids();
-  reset_nuR();
 
   // update grid biomass to calculate diffusion coeff
   if (diffusion != NULL && diffusion->dcflag) update_xmass();
@@ -422,26 +421,9 @@ void FixKinetics::integration() {
     iteration++;
     isConv = true;
 
-    // solve for reaction term, no growth happens here
-    if (iteration % devery == 0) {
-      if (energy != NULL) {
-        if (ph != NULL) ph->solve_ph();
-        else compute_activity();
-
-        thermo->thermo(diffT);
-        energy->growth(diffT, gflag);
-      } else if (monod != NULL) {
-        monod->growth(diffT, gflag);
-      }
-    }
-
     // solve for diffusion and advection
     if (diffusion != NULL) {
       nuConv = diffusion->diffusion(nuConv, iteration, diffT);
-      reset_nuR();
-    } else {
-      reset_nuR();
-      break;
     }
 
     // check for convergence
@@ -455,15 +437,24 @@ void FixKinetics::integration() {
     if (niter > 0 && iteration >= niter) isConv = true;
   }
 
+  gflag = 1;
+  if (energy != NULL) {
+    if (ph != NULL) ph->solve_ph();
+    else compute_activity();
+    thermo->thermo(update->dt*nevery);
+    energy->growth(update->dt*nevery, gflag);
+  } else if (monod != NULL) {
+    monod->growth(update->dt*nevery, gflag);
+  }
+
+  reset_isConv();
+
   if (comm->me == 0 && logfile) fprintf(logfile, "number of iterations: %i \n", iteration);
   if (comm->me == 0 && screen) fprintf(screen, "number of iterations: %i \n", iteration);
 
-  gflag = 1;
-  reset_isConv();
-
   // microbe growth
-  if (energy != NULL) energy->growth(update->dt*nevery, gflag);
-  if (monod != NULL) monod->growth(update->dt*nevery, gflag);
+  // if (energy != NULL) energy->growth(update->dt*nevery, gflag);
+  // if (monod != NULL) monod->growth(update->dt*nevery, gflag);
 
   if (diffusion != NULL) {
    // manually update reaction if none of the surface is using dirichlet BC
@@ -474,7 +465,7 @@ void FixKinetics::integration() {
    diffusion->update_grids();
   }
 
-  if (thermo != NULL) thermo->thermo(update->dt*nevery);
+  // if (thermo != NULL) thermo->thermo(update->dt*nevery);
 }
 
 /* ----------------------------------------------------------------------
