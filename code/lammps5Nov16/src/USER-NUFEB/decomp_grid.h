@@ -63,10 +63,14 @@ class DecompGrid {
     send_buff.resize(send_end.back());
   }
 
-  void exchange() {
+  void pack() {
     Derived *derived = static_cast<Derived *>(this);
     // pack data to send buffer
     derived->pack_cells(send_cells.begin(), send_cells.end(), send_buff.begin());
+  }
+
+  int sendrecv() {
+    Derived *derived = static_cast<Derived *>(this);
     // send and recv grid data
     int nrequests = 0;
     for (int p = 0; p < derived->comm->nprocs; p++) {
@@ -79,10 +83,25 @@ class DecompGrid {
 	MPI_Isend(&send_buff[send_begin[p]], send_end[p] - send_begin[p], MPI_DOUBLE, p, 0, derived->world, &requests[nrequests++]);
       }
     }
+    return nrequests;
+  }
+
+  void wait(int nrequests) {
     // wait for all MPI requests
     MPI_Waitall(nrequests, requests.data(), MPI_STATUS_IGNORE);
+  }
+
+  void unpack() {
+    Derived *derived = static_cast<Derived *>(this);
     // unpack data from recv buffer
     derived->unpack_cells(recv_cells.begin(), recv_cells.end(), recv_buff.begin());
+  }
+
+  void exchange() {
+    pack();
+    sendrecv();
+    wait();
+    unpack();
   }
 
   void migrate(const Grid<double, 3> &grid, const Box<int, 3> &from, const Box<int, 3> &to) {

@@ -283,11 +283,24 @@ int *FixKineticsDiffusion::diffusion(int *nuConv, int iter, double diffT) {
   double **nuS = kinetics->nuS;
   double *nuBS = kinetics->nuBS;
   double **iniS = bio->iniS;
-
-  DecompGrid<FixKineticsDiffusion>::exchange();
-
   double *maxS = new double[nnus + 1];
+
+  int nrequests = 0;
+  if (nnus > 0) {
+    iexch = 1;
+    DecompGrid<FixKineticsDiffusion>::pack();
+    nrequests = DecompGrid<FixKineticsDiffusion>::sendrecv();
+  }
+
   for (int i = 1; i <= nnus; i++) {
+    if (i < nnus) { 
+      DecompGrid<FixKineticsDiffusion>::wait(nrequests);
+      DecompGrid<FixKineticsDiffusion>::unpack();
+      iexch = i + 1;
+      DecompGrid<FixKineticsDiffusion>::pack();
+      nrequests = DecompGrid<FixKineticsDiffusion>::sendrecv();
+    }
+
     if (bio->nuType[i] == 0 && !nuConv[i]) {
       if (unit == 0) {
         xbcm = iniS[i][1] * 1000;
@@ -304,6 +317,7 @@ int *FixKineticsDiffusion::diffusion(int *nuConv, int iter, double diffT) {
         zbcm = iniS[i][5];
         zbcp = iniS[i][6];
       }
+
       // copy current concentrations
       for (int grid = 0; grid < nXYZ; grid++) {
         nuPrev[i][grid] = nuGrid[i][grid];
@@ -341,15 +355,15 @@ int *FixKineticsDiffusion::diffusion(int *nuConv, int iter, double diffT) {
       MPI_Allreduce(MPI_IN_PLACE, &maxS[i], 1, MPI_DOUBLE, MPI_MAX, world);
 #endif
     }
-}
+  }
 
-  int nrequests = 0;
+  nrequests = 0;
   for (int i = 1; i <= nnus; i++) {
     if (bio->nuType[i] == 0 && !nuConv[i]) { // checking if is liquid
 #if MPI_VERSION >= 3
-        MPI_Wait(&requests[i], MPI_STATUS_IGNORE);
+      MPI_Wait(&requests[i], MPI_STATUS_IGNORE);
 #endif
-    // check convergence criteria
+      // check convergence criteria
       nuConv[i] = true;
       for (int grid = 0; grid < nXYZ; grid++) {
         if (!ghost[grid]) {
@@ -742,7 +756,7 @@ void FixKineticsDiffusion::update_nuS() {
 }
 
 int FixKineticsDiffusion::get_elem_per_cell() const {
-  return bio->nnus;
+  return 1;
 }
 
 void FixKineticsDiffusion::resize(const Subgrid<double, 3> &subgrid) {

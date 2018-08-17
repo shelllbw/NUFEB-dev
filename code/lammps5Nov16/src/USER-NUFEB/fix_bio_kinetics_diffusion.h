@@ -93,22 +93,21 @@ class FixKineticsDiffusion: public Fix, public DecompGrid<FixKineticsDiffusion> 
   template <typename InputIterator, typename OutputIterator>
   OutputIterator pack_cells(InputIterator first, InputIterator last, OutputIterator result) {
     for (InputIterator it = first; it != last; ++it) {
-      for (int i = 1; i <= bio->nnus; i++) {
-	*result++ = nuGrid[i][*it];
-      }
+      *result++ = nuGrid[iexch][*it];
     }
     return result;
   }
   template <typename InputIterator0, typename InputIterator1>
   InputIterator1 unpack_cells(InputIterator0 first, InputIterator0 last, InputIterator1 input) {
     for (InputIterator0 it = first; it != last; ++it) {
-      for (int i = 1; i <= bio->nnus; i++) {
-	nuGrid[i][*it] = *input++;
-      }
+      nuGrid[iexch][*it] = *input++;
     }
     return input;
   }
   void resize(const Subgrid<double, 3> &);
+
+ private:
+  int iexch;
 };
 
 }
