@@ -500,8 +500,16 @@ double FixKinetics::getMaxHeight() {
 void FixKinetics::update_bgrids() {
   if (blayer >= 0) {
     maxheight = getMaxHeight();
-    bnz = (int)((blayer + maxheight) / stepz) + 1;
-    bgrids = subn[0] * subn[1] * MIN(subn[2], MAX(0, bnz - subnlo[2]));
+    int newbnz = (int)((blayer + maxheight) / stepz) + 1;
+    if (newbnz != bnz) {
+      bgrids = subn[0] * subn[1] * MIN(subn[2], MAX(0, bnz - subnlo[2]));
+      if (diffusion) {
+	Box<int, 3> box = subgrid.get_box();
+	box.upper[2] = newbnz;
+	diffusion->setup_exchange(grid, subgrid.get_box(), box, { diffusion->xbcflag == 0, diffusion->ybcflag == 0, diffusion->zbcflag == 0 });
+      }
+      bnz = newbnz;
+    }
   }
   else {
     bgrids = subn[0] * subn[1] * subn[2];

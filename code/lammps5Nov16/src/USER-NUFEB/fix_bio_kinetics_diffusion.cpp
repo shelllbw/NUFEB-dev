@@ -269,7 +269,9 @@ void FixKineticsDiffusion::init() {
   // create request vector
   requests = new MPI_Request[MAX(2 * comm->nprocs, nnus + 1)];
 
-  setup_exchange(kinetics->grid, kinetics->subgrid.get_box(), { xbcflag == 0, ybcflag == 0, zbcflag == 0 });
+  Box<int, 3> box = kinetics->subgrid.get_box();
+  box.upper[2] = kinetics->bnz;
+  setup_exchange(kinetics->grid, kinetics->subgrid.get_box(), box, { xbcflag == 0, ybcflag == 0, zbcflag == 0 });
 }
 
 /* ----------------------------------------------------------------------
@@ -419,22 +421,22 @@ void FixKineticsDiffusion::update_grids() {
   if(!bulkflag) return;
 
   for (int grid = 0; grid < nX*nY*nZ; grid++) {
-     if (xGrid[grid][2] > MIN(bzhi, kinetics->subhi[2])) {
-       for (int nu = 1; nu <= bio->nnus; nu++) {
-         if (bio->nuType[nu] != 0) continue;
+    if (xGrid[grid][2] > MIN(bzhi, kinetics->subhi[2])) {
+      for (int nu = 1; nu <= bio->nnus; nu++) {
+	if (bio->nuType[nu] != 0) continue;
 
-         nuGrid[nu][grid] = kinetics->nuBS[nu];
+	nuGrid[nu][grid] = kinetics->nuBS[nu];
 
-         int ind = get_index(grid);
-         if (ind >= 0 && ind < kinetics->subn[0] * kinetics->subn[1] * kinetics->subn[2]) {
-           if (kinetics->nuBS[nu] == 1e-20) {
-             kinetics->nuS[nu][ind] = nuGrid[nu][grid];
-           } else {
-             kinetics->nuS[nu][ind] = (unit == 1) ? (nuGrid[nu][grid]) : (nuGrid[nu][grid] / 1000);
-           }
-         }
-       }
-     }
+	int ind = get_index(grid);
+	if (ind >= 0 && ind < kinetics->subn[0] * kinetics->subn[1] * kinetics->subn[2]) {
+	  if (kinetics->nuBS[nu] == 1e-20) {
+	    kinetics->nuS[nu][ind] = nuGrid[nu][grid];
+	  } else {
+	    kinetics->nuS[nu][ind] = (unit == 1) ? (nuGrid[nu][grid]) : (nuGrid[nu][grid] / 1000);
+	  }
+	}
+      }
+    }
   }
 }
 
@@ -771,7 +773,7 @@ void FixKineticsDiffusion::resize(const Subgrid<double, 3> &subgrid) {
 void FixKineticsDiffusion::migrate(const Grid<double, 3> &grid, const Box<int, 3> &from, const Box<int, 3> &to) {
   DecompGrid<FixKineticsDiffusion>::migrate(grid, from, to, extend(from), extend(to));
   Subgrid<double, 3> subgrid(grid, to);
-  setup_exchange(grid, to, { xbcflag == 0, ybcflag == 0, zbcflag == 0 });
+  setup_exchange(grid, to, to, { xbcflag == 0, ybcflag == 0, zbcflag == 0 });
   Subgrid<double, 3> extended(kinetics->grid, extend(to));
   auto cell_centers = extended.get_cell_centers();
   for (int i = 0; i < extended.cell_count(); i++) {

@@ -11,6 +11,7 @@ class DecompGrid {
  public:
   void setup_exchange(const Grid<double, 3> &grid,
 		      const Box<int, 3> &box,
+		      const Box<int, 3> &blbox, // boundary layer box
 		      const std::array<bool, 3> &periodic) {
     Derived *derived = static_cast<Derived *>(this);
     // communicate grid extent
@@ -35,25 +36,25 @@ class DecompGrid {
       Box<int, 3> other(&boxlo[3 * p], &boxhi[3 * p]);
       if (p != derived->comm->me) {
 	// identify which cell we are going to send and receive
-	setup_comm_cells(subgrid, box, other);
+	setup_comm_cells(subgrid, blbox, other);
 	// check for periodic boundary conditions
 	if (ext_box.lower[0] < 0 && periodic[0]) {
-	  setup_comm_cells(subgrid, box, translate(other, {-grid.get_dimensions()[0], 0, 0}));
+	  setup_comm_cells(subgrid, blbox, translate(other, {-grid.get_dimensions()[0], 0, 0}));
 	}
 	if (ext_box.upper[0] > grid.get_dimensions()[0] && periodic[0]) {      
-	  setup_comm_cells(subgrid, box, translate(other, {grid.get_dimensions()[0], 0, 0}));
+	  setup_comm_cells(subgrid, blbox, translate(other, {grid.get_dimensions()[0], 0, 0}));
 	}
 	if (ext_box.lower[1] < 0 && periodic[1]) {
-	  setup_comm_cells(subgrid, box, translate(other, {0, -grid.get_dimensions()[1], 0}));
+	  setup_comm_cells(subgrid, blbox, translate(other, {0, -grid.get_dimensions()[1], 0}));
 	}
 	if (ext_box.upper[1] > grid.get_dimensions()[1] && periodic[1]) {      
-	  setup_comm_cells(subgrid, box, translate(other, {0, grid.get_dimensions()[1], 0}));
+	  setup_comm_cells(subgrid, blbox, translate(other, {0, grid.get_dimensions()[1], 0}));
 	}
 	if (ext_box.lower[2] < 0 && periodic[2]) {
-	  setup_comm_cells(subgrid, box, translate(other, {0, 0, -grid.get_dimensions()[2]}));
+	  setup_comm_cells(subgrid, blbox, translate(other, {0, 0, -grid.get_dimensions()[2]}));
 	}
 	if (ext_box.upper[2] > grid.get_dimensions()[2] && periodic[2]) {      
-	  setup_comm_cells(subgrid, box, translate(other, {0, 0, grid.get_dimensions()[2]}));
+	  setup_comm_cells(subgrid, blbox, translate(other, {0, 0, grid.get_dimensions()[2]}));
 	}
       }
       recv_end[p] = recv_cells.size() * epc;
